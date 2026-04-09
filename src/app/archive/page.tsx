@@ -3,7 +3,7 @@ import { AppShell } from "@/components/layout/app-shell";
 
 export default function ArchivePage() {
   return (
-    <AppShell title="Archive" subtitle="Calendar, list view, and recent paper trails.">
+    <AppShell title="아카이브" subtitle="달력, 최근 기록, 날짜별 페이지">
       <ArchiveHome />
     </AppShell>
   );

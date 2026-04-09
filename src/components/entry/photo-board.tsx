@@ -46,6 +46,21 @@ function useLocalAssetUrl(assetId?: string, remoteUrl?: string) {
   return remoteUrl ?? assetUrl;
 }
 
+function stickerGlyph(stickerId: string) {
+  switch (stickerId) {
+    case "starry":
+      return "★";
+    case "strawberry":
+      return "♡";
+    case "ribbon":
+      return "🎀";
+    case "flower":
+      return "✿";
+    default:
+      return "◎";
+  }
+}
+
 function PhotoCard({
   photo,
   onMoveStart,
@@ -88,7 +103,7 @@ function PhotoCard({
         className={styles.photoCaption}
         value={photo.payload.caption}
         onChange={(event) => onCaptionChange(photo.id, event.target.value)}
-        placeholder="Caption this little memory"
+        placeholder="짧은 캡션"
       />
     </article>
   );
@@ -125,7 +140,8 @@ function StickerCard({
           <X size={14} />
         </button>
       </div>
-      <span>{sticker.payload.label}</span>
+      <span>{stickerGlyph(sticker.payload.stickerId)}</span>
+      <strong>{sticker.payload.label}</strong>
     </article>
   );
 }
@@ -264,7 +280,7 @@ export function PhotoBoard({
       <div className={styles.boardToolbar}>
         <button type="button" className={styles.primaryButton} onClick={() => inputRef.current?.click()}>
           <ImagePlus size={16} />
-          Add photos
+          사진 올리기
         </button>
         <div className={styles.stickerRow}>
           {stickerPresets.map((sticker) => (
@@ -287,6 +303,7 @@ export function PhotoBoard({
               }
             >
               <Sticker size={14} />
+              <span>{stickerGlyph(sticker.id)}</span>
               {sticker.label}
             </button>
           ))}
@@ -352,8 +369,8 @@ export function PhotoBoard({
 
         {photos.length === 0 && stickers.length === 0 ? (
           <div className={styles.boardEmpty}>
-            <strong>Memory board</strong>
-            <p>Drop in a photo, add a label sticker, or keep it beautifully simple for today.</p>
+            <strong>메모리 보드</strong>
+            <p>사진을 올리거나 별, 하트, 리본 스티커를 붙여서 오늘 페이지를 정리해 보세요.</p>
           </div>
         ) : null}
       </div>

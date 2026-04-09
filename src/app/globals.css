@@ -1,48 +1,95 @@
 :root {
-  --pink-main: #f3cfdc;
-  --pink-soft: #f9e8ee;
-  --pink-glow: #f6ddea;
-  --green-accent: #d8e7b9;
-  --green-glow: #e5f0d6;
-  --paper: #fffafc;
-  --paper-strong: #fff7fb;
-  --ink: #544a4e;
-  --line: #7d6d73;
-  --muted: #6f6368;
-  --shadow-soft: 0 24px 60px rgba(146, 118, 128, 0.18);
-  --shadow-card: 0 12px 30px rgba(151, 124, 135, 0.16);
+  color-scheme: light;
+  --pink-main: #f7d6e4;
+  --pink-soft: #fff0f6;
+  --pink-glow: #fde5ef;
+  --mint-main: #dff0c5;
+  --mint-soft: #eef8dd;
+  --paper: #fffdfb;
+  --paper-strong: #fff8fb;
+  --paper-warm: #fff4f6;
+  --ink: #43383d;
+  --line: #8d767f;
+  --muted: #6f6268;
+  --shadow-soft: 0 24px 60px rgba(193, 153, 170, 0.16);
+  --shadow-card: 0 14px 32px rgba(208, 177, 190, 0.16);
 }
 
-* { box-sizing: border-box; }
-html { min-height: 100%; background: #fff7fb; }
+* {
+  box-sizing: border-box;
+}
+
+html {
+  min-height: 100%;
+  background: #fffafc;
+}
+
 body {
   min-height: 100vh;
   margin: 0;
   color: var(--ink);
-  font-family: "Quicksand", "Trebuchet MS", sans-serif;
+  font-family: "Quicksand", "Apple SD Gothic Neo", "Malgun Gothic", "Trebuchet MS", sans-serif;
   background:
-    radial-gradient(circle at top left, rgba(246, 221, 234, 0.85), transparent 28%),
-    radial-gradient(circle at top right, rgba(229, 240, 214, 0.75), transparent 22%),
-    linear-gradient(180deg, #fff9fb 0%, #fffef9 100%);
+    radial-gradient(circle at 10% 6%, rgba(255, 219, 235, 0.85), transparent 20%),
+    radial-gradient(circle at 92% 10%, rgba(228, 244, 212, 0.9), transparent 17%),
+    radial-gradient(circle at 20% 88%, rgba(255, 236, 244, 0.82), transparent 18%),
+    linear-gradient(180deg, #fff9fb 0%, #fffdf8 100%);
   position: relative;
 }
 
-body::before {
+body::before,
+body::after {
   content: "";
   position: fixed;
   inset: 0;
   pointer-events: none;
+}
+
+body::before {
   background:
-    linear-gradient(rgba(125, 109, 115, 0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(125, 109, 115, 0.03) 1px, transparent 1px);
-  background-size: 24px 24px;
-  opacity: 0.25;
+    radial-gradient(circle, rgba(141, 118, 127, 0.09) 1px, transparent 1px),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.24), rgba(255, 255, 255, 0.1));
+  background-size: 22px 22px, auto;
+  opacity: 0.34;
   mix-blend-mode: multiply;
 }
 
-a { color: inherit; text-decoration: none; }
-button, input, textarea { font: inherit; }
-button { cursor: pointer; }
-input, textarea { border: none; outline: none; background: transparent; }
-img { display: block; max-width: 100%; }
-::selection { background: rgba(243, 207, 220, 0.45); }
+body::after {
+  background:
+    radial-gradient(circle at 8% 18%, rgba(255, 214, 229, 0.76) 0 10px, transparent 11px),
+    radial-gradient(circle at 88% 26%, rgba(233, 246, 215, 0.82) 0 11px, transparent 12px),
+    radial-gradient(circle at 72% 86%, rgba(255, 221, 234, 0.72) 0 9px, transparent 10px);
+  filter: blur(24px);
+  opacity: 0.5;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button,
+input,
+textarea {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+input,
+textarea {
+  border: none;
+  outline: none;
+  background: transparent;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+}
+
+::selection {
+  background: rgba(247, 214, 228, 0.54);
+}

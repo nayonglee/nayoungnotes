@@ -9,7 +9,7 @@ export default async function EntryPage({
   const { date } = await params;
 
   return (
-    <AppShell title="Daily Page" subtitle={date}>
+    <AppShell title="하루 페이지" subtitle={date}>
       <EntryEditor entryDate={date} />
     </AppShell>
   );

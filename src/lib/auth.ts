@@ -25,15 +25,35 @@ export function savePreviewViewer(viewer: Viewer | null) {
 
 export async function signInWithPassword(email: string, password: string) {
   const supabase = getSupabaseClient();
-  if (!supabase) throw new Error("Supabase is not configured.");
+  if (!supabase) throw new Error("Supabase 환경 변수가 아직 설정되지 않았습니다.");
   const { error } = await supabase.auth.signInWithPassword({ email, password });
   if (error) throw error;
 }
 
 export async function signUpWithPassword(email: string, password: string) {
   const supabase = getSupabaseClient();
-  if (!supabase) throw new Error("Supabase is not configured.");
-  const { error } = await supabase.auth.signUp({ email, password });
+  if (!supabase) throw new Error("Supabase 환경 변수가 아직 설정되지 않았습니다.");
+  const { error } = await supabase.auth.signUp({
+    email,
+    password,
+    options: {
+      emailRedirectTo:
+        typeof window === "undefined" ? undefined : `${window.location.origin}/archive`
+    }
+  });
+  if (error) throw error;
+}
+
+export async function signInWithMagicLink(email: string) {
+  const supabase = getSupabaseClient();
+  if (!supabase) throw new Error("Supabase 환경 변수가 아직 설정되지 않았습니다.");
+  const { error } = await supabase.auth.signInWithOtp({
+    email,
+    options: {
+      emailRedirectTo:
+        typeof window === "undefined" ? undefined : `${window.location.origin}/archive`
+    }
+  });
   if (error) throw error;
 }
 

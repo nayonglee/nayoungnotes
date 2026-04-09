@@ -10,8 +10,8 @@ export default function OfflinePage() {
       }}
     >
       <section>
-        <h1>Offline, but your drafts can still glow.</h1>
-        <p>Nayoung Notes keeps local drafts in IndexedDB and syncs them when your connection returns.</p>
+        <h1>오프라인 상태입니다.</h1>
+        <p>초안은 기기에 저장되고, 연결이 돌아오면 다시 동기화됩니다.</p>
       </section>
     </main>
   );

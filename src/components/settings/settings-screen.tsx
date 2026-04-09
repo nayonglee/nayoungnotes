@@ -3,7 +3,7 @@
 import type { ChangeEvent } from "react";
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { Download, LockKeyhole, LogOut, Upload } from "lucide-react";
+import { Cloud, CloudOff, Download, LockKeyhole, LogOut, Upload } from "lucide-react";
 import { savePreviewViewer, signOutUser } from "@/lib/auth";
 import { createStoredPin, clearStoredPin, saveStoredPin } from "@/lib/pin";
 import {
@@ -20,6 +20,7 @@ import styles from "@/styles/settings.module.css";
 export function SettingsScreen() {
   const queryClient = useQueryClient();
   const viewer = useAuthStore((state) => state.viewer);
+  const configured = useAuthStore((state) => state.supabaseConfigured);
   const setViewer = useAuthStore((state) => state.setViewer);
   const { hasPin, preferences, setHasPin, setLocked, setPreferences } = usePinStore();
   const [pinValue, setPinValue] = useState("");
@@ -28,7 +29,7 @@ export function SettingsScreen() {
 
   const handlePinSave = async () => {
     if (pinValue.length !== 4 || pinValue !== confirmPin) {
-      setMessage("PIN must be 4 digits and both fields must match.");
+      setMessage("PIN은 4자리여야 하고 두 칸이 같아야 합니다.");
       return;
     }
 
@@ -38,7 +39,7 @@ export function SettingsScreen() {
     setPreferences({ ...preferences, enabled: true });
     setPinValue("");
     setConfirmPin("");
-    setMessage("PIN lock is now enabled on this device.");
+    setMessage("이 기기에서 PIN 잠금이 켜졌습니다.");
   };
 
   const handleExport = async () => {
@@ -73,7 +74,7 @@ export function SettingsScreen() {
 
     await flushPendingQueue(viewer);
     await queryClient.invalidateQueries();
-    setMessage("Import queued. Any pending pages were synced or staged locally.");
+    setMessage("가져오기를 완료했습니다. 온라인이면 바로 동기화되고, 아니면 기기에 임시 저장됩니다.");
     event.target.value = "";
   };
 
@@ -88,23 +89,45 @@ export function SettingsScreen() {
     <div className={styles.page}>
       <section className={styles.card}>
         <div className={styles.cardHeader}>
+          {configured ? <Cloud size={18} /> : <CloudOff size={18} />}
+          <div>
+            <strong>클라우드 연동 상태</strong>
+            <p>
+              {configured
+                ? viewer?.mode === "supabase"
+                  ? `현재 ${viewer.email ?? "계정"} 으로 연결되어 있습니다.`
+                  : "Supabase는 연결 가능하지만 지금은 로컬 미리보기로 열려 있습니다."
+                : "Supabase 환경 변수가 아직 없어서 로컬 미리보기 모드만 가능합니다."}
+            </p>
+          </div>
+        </div>
+        {!configured ? (
+          <p className={styles.message}>
+            `.env.local`에 `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`를 넣고
+            `supabase/schema.sql`을 적용하면 실제 계정 연동이 켜집니다.
+          </p>
+        ) : null}
+      </section>
+
+      <section className={styles.card}>
+        <div className={styles.cardHeader}>
           <LockKeyhole size={18} />
           <div>
-            <strong>Local PIN lock</strong>
-            <p>Device-only privacy that sits on top of your normal account login.</p>
+            <strong>기기 PIN 잠금</strong>
+            <p>이 설정은 이 기기에서만 동작합니다. 계정과는 별개입니다.</p>
           </div>
         </div>
 
         {hasPin ? (
           <>
             <div className={styles.toggleRow}>
-              <span>PIN lock enabled</span>
+              <span>PIN 잠금 사용</span>
               <button
                 type="button"
                 className={preferences.enabled ? styles.primaryButton : styles.secondaryButton}
                 onClick={() => setPreferences({ ...preferences, enabled: !preferences.enabled })}
               >
-                {preferences.enabled ? "On" : "Off"}
+                {preferences.enabled ? "켜짐" : "꺼짐"}
               </button>
             </div>
 
@@ -120,14 +143,14 @@ export function SettingsScreen() {
                   }
                   onClick={() => setPreferences({ ...preferences, timeoutMinutes: minutes })}
                 >
-                  Auto-lock in {minutes}m
+                  {minutes}분 후 잠금
                 </button>
               ))}
             </div>
 
             <div className={styles.inlineButtons}>
               <button type="button" className={styles.secondaryButton} onClick={() => setLocked(true)}>
-                Lock now
+                지금 잠그기
               </button>
               <button
                 type="button"
@@ -138,14 +161,14 @@ export function SettingsScreen() {
                   setPreferences({ ...preferences, enabled: false });
                 }}
               >
-                Remove PIN
+                PIN 삭제
               </button>
             </div>
           </>
         ) : (
           <div className={styles.pinSetup}>
             <label>
-              4-digit PIN
+              4자리 PIN
               <input
                 inputMode="numeric"
                 value={pinValue}
@@ -154,7 +177,7 @@ export function SettingsScreen() {
               />
             </label>
             <label>
-              Confirm PIN
+              PIN 확인
               <input
                 inputMode="numeric"
                 value={confirmPin}
@@ -165,7 +188,7 @@ export function SettingsScreen() {
               />
             </label>
             <button type="button" className={styles.primaryButton} onClick={handlePinSave}>
-              Save device PIN
+              PIN 저장
             </button>
           </div>
         )}
@@ -175,19 +198,19 @@ export function SettingsScreen() {
         <div className={styles.cardHeader}>
           <Download size={18} />
           <div>
-            <strong>Export and import</strong>
-            <p>Move your diary pages as JSON snapshots, including typed items and drawing strokes.</p>
+            <strong>내보내기 / 가져오기</strong>
+            <p>텍스트, 체크리스트, 사진 정보, 손글씨 stroke 데이터를 JSON으로 옮길 수 있습니다.</p>
           </div>
         </div>
 
         <div className={styles.inlineButtons}>
           <button type="button" className={styles.primaryButton} onClick={handleExport}>
             <Download size={16} />
-            Export JSON
+            JSON 내보내기
           </button>
           <label className={styles.uploadButton}>
             <Upload size={16} />
-            Import JSON
+            JSON 가져오기
             <input type="file" accept="application/json" onChange={handleImport} />
           </label>
         </div>
@@ -197,13 +220,13 @@ export function SettingsScreen() {
         <div className={styles.cardHeader}>
           <LogOut size={18} />
           <div>
-            <strong>Account</strong>
-            <p>Nayoung Notes is designed for one person&apos;s private pages, not teams or shared workspaces.</p>
+            <strong>계정</strong>
+            <p>혼자 쓰는 개인 다이어리 기준으로 맞춘 앱입니다. 공유 기능은 없습니다.</p>
           </div>
         </div>
 
         <button type="button" className={styles.secondaryButton} onClick={handleSignOut}>
-          Sign out
+          로그아웃
         </button>
       </section>
 

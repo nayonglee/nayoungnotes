@@ -15,14 +15,14 @@ export function strokeToSvgPath(stroke: DrawingStroke) {
   const outline = getStroke(
     stroke.points.map(([x, y, pressure = 0.5]) => ({ x, y, pressure })),
     {
-      size: stroke.width * 2.25,
-      thinning: stroke.tool === "highlighter" ? 0.1 : 0.6,
-      smoothing: 0.65,
-      streamline: 0.4,
-      easing: (t) => t,
-      simulatePressure: true,
+      size: stroke.tool === "highlighter" ? stroke.width * 1.7 : stroke.width * 2.2,
+      thinning: stroke.tool === "highlighter" ? 0.08 : 0.52,
+      smoothing: stroke.tool === "highlighter" ? 0.72 : 0.78,
+      streamline: stroke.tool === "highlighter" ? 0.5 : 0.42,
+      easing: (t) => 1 - (1 - t) * (1 - t),
+      simulatePressure: stroke.tool !== "highlighter",
       start: { taper: 0 },
-      end: { taper: stroke.tool === "highlighter" ? 0 : stroke.width * 0.5 }
+      end: { taper: stroke.tool === "highlighter" ? 0 : stroke.width * 0.35 }
     }
   );
   return getSvgPathFromStroke(outline);

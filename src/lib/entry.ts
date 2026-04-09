@@ -89,7 +89,7 @@ export function toEntryOverview(record: DiaryEntryRecord): EntryOverview {
   return {
     id: record.id,
     entryDate: record.entryDate,
-    title: record.title || "Untitled page",
+    title: record.title || "제목 없음",
     mood: record.mood,
     updatedAt: record.updatedAt,
     previewText: record.text.payload.content.slice(0, 140),

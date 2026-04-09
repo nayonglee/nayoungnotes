@@ -25,12 +25,12 @@ export function SaveStateChip({
 
   const label =
     state === "syncing"
-      ? "Syncing..."
+      ? "동기화 중"
       : state === "offline-draft"
-        ? "Offline Draft"
+        ? "오프라인 초안"
         : state === "error"
-          ? "Needs attention"
-          : "Saved";
+          ? "확인 필요"
+          : "저장됨";
 
   return (
     <span className={clsx(styles.saveChip, styles[`saveChip_${state}`])}>

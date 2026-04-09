@@ -4,11 +4,14 @@ import { startTransition, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { addMonths, format, parseISO, subMonths } from "date-fns";
-import { CalendarRange, ChevronLeft, ChevronRight, List, Plus } from "lucide-react";
+import { ko } from "date-fns/locale";
+import { CalendarRange, ChevronLeft, ChevronRight, List, Plus, Star } from "lucide-react";
 import { buildCalendarMatrix, todayKey } from "@/lib/date";
 import { loadEntryOverviews } from "@/lib/local/sync";
 import { useAuthStore } from "@/store/auth-store";
 import styles from "@/styles/archive.module.css";
+
+const weekdayLabels = ["일", "월", "화", "수", "목", "금", "토"];
 
 export function ArchiveHome() {
   const router = useRouter();
@@ -40,25 +43,36 @@ export function ArchiveHome() {
     <div className={styles.page}>
       <section className={styles.heroRow}>
         <article className={styles.todayCard}>
-          <span className={styles.sectionTag}>today quick entry</span>
-          <h3>{todayOverview?.title || "Start today&apos;s page"}</h3>
+          <span className={styles.sectionTag}>today</span>
+          <h3>{todayOverview?.title || "오늘 페이지 만들기"}</h3>
           <p>
             {todayOverview?.previewText ||
-              "Open a ready-made page with mood, checklist, diary text, photos, and handwriting space."}
+              "오늘 기록용 페이지를 열고 제목, 체크리스트, 본문, 사진, 손글씨를 바로 적을 수 있습니다."}
           </p>
+
+          <div className={styles.quickMeta}>
+            <span>체크 {todayOverview?.todoCount ?? 0}</span>
+            <span>사진 {todayOverview?.photoCount ?? 0}</span>
+            <span>손글씨 보드 포함</span>
+          </div>
+
           <button className={styles.primaryAction} onClick={() => openEntry(entryDate)}>
             <Plus size={16} />
-            {todayOverview ? "Continue today" : "Create today"}
+            {todayOverview ? "오늘 이어쓰기" : "오늘 시작하기"}
           </button>
         </article>
 
         <article className={styles.recentCard}>
           <div className={styles.cardHeader}>
-            <span className={styles.sectionTag}>recent entries</span>
+            <div>
+              <span className={styles.sectionTag}>recent</span>
+              <h3>최근 페이지</h3>
+            </div>
             <button type="button" className={styles.plainButton} onClick={() => setViewMode("list")}>
-              See list
+              리스트 보기
             </button>
           </div>
+
           <div className={styles.recentStrip}>
             {recentEntries.map((entry) => (
               <button
@@ -66,8 +80,11 @@ export function ArchiveHome() {
                 className={styles.recentChip}
                 onClick={() => openEntry(entry.entryDate)}
               >
-                <strong>{format(parseISO(entry.entryDate), "MMM d")}</strong>
+                <strong>{format(parseISO(entry.entryDate), "M.d", { locale: ko })}</strong>
                 <span>{entry.title}</span>
+                <small>
+                  사진 {entry.photoCount} · 할 일 {entry.todoCount}
+                </small>
               </button>
             ))}
           </div>
@@ -77,14 +94,15 @@ export function ArchiveHome() {
       <section className={styles.archiveCard}>
         <div className={styles.cardHeader}>
           <div>
-            <span className={styles.sectionTag}>home archive</span>
-            <h3>{format(parseISO(anchorDate), "MMMM yyyy")}</h3>
+            <span className={styles.sectionTag}>archive</span>
+            <h3>{format(parseISO(anchorDate), "yyyy년 M월", { locale: ko })}</h3>
           </div>
           <div className={styles.controls}>
             <button
               type="button"
               className={styles.iconButton}
               onClick={() => setAnchorDate(format(subMonths(parseISO(anchorDate), 1), "yyyy-MM-dd"))}
+              aria-label="이전 달"
             >
               <ChevronLeft size={16} />
             </button>
@@ -92,6 +110,7 @@ export function ArchiveHome() {
               type="button"
               className={styles.iconButton}
               onClick={() => setAnchorDate(format(addMonths(parseISO(anchorDate), 1), "yyyy-MM-dd"))}
+              aria-label="다음 달"
             >
               <ChevronRight size={16} />
             </button>
@@ -101,7 +120,7 @@ export function ArchiveHome() {
               onClick={() => setViewMode("calendar")}
             >
               <CalendarRange size={16} />
-              Calendar
+              달력
             </button>
             <button
               type="button"
@@ -109,14 +128,14 @@ export function ArchiveHome() {
               onClick={() => setViewMode("list")}
             >
               <List size={16} />
-              List
+              리스트
             </button>
           </div>
         </div>
 
         {viewMode === "calendar" ? (
           <div className={styles.calendarGrid}>
-            {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
+            {weekdayLabels.map((day) => (
               <span key={day} className={styles.weekday}>
                 {day}
               </span>
@@ -132,8 +151,20 @@ export function ArchiveHome() {
                   data-filled={Boolean(entry)}
                   onClick={() => openEntry(day.date)}
                 >
-                  <span>{day.dayOfMonth}</span>
-                  {entry ? <small>{entry.title}</small> : <small>Blank page</small>}
+                  <div className={styles.dayTop}>
+                    <span>{day.dayOfMonth}</span>
+                    {entry ? <Star size={12} /> : null}
+                  </div>
+                  {entry ? (
+                    <>
+                      <strong>{entry.title}</strong>
+                      <small>
+                        사진 {entry.photoCount} · 할 일 {entry.todoCount}
+                      </small>
+                    </>
+                  ) : (
+                    <small>새 페이지</small>
+                  )}
                 </button>
               );
             })}
@@ -147,12 +178,12 @@ export function ArchiveHome() {
                 onClick={() => openEntry(entry.entryDate)}
               >
                 <div>
-                  <strong>{format(parseISO(entry.entryDate), "EEEE, MMM d")}</strong>
+                  <strong>{format(parseISO(entry.entryDate), "M월 d일 EEEE", { locale: ko })}</strong>
                   <p>{entry.title}</p>
                 </div>
                 <div className={styles.rowMeta}>
-                  <span>{entry.todoCount} todos</span>
-                  <span>{entry.photoCount} photos</span>
+                  <span>체크 {entry.todoCount}</span>
+                  <span>사진 {entry.photoCount}</span>
                 </div>
               </button>
             ))}

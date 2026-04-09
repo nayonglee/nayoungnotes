@@ -2,15 +2,60 @@
 
 import type { PointerEvent as ReactPointerEvent } from "react";
 import { useRef, useState } from "react";
-import { Eraser, Highlighter, PenLine, RotateCcw, RotateCw } from "lucide-react";
+import { Eraser, Highlighter, PenLine, PencilLine, RotateCcw, RotateCw } from "lucide-react";
 import { eraseStrokesNearPoint, strokeToSvgPath } from "@/lib/drawing";
 import { createId } from "@/lib/utils";
 import type { DrawingBackground, DrawingItem, DrawingStroke, StrokePoint } from "@/types/diary";
 import styles from "@/styles/entry.module.css";
 
-type ToolMode = "pen" | "highlighter" | "eraser";
+type ToolMode = "fine" | "gel" | "marker" | "eraser";
 
-const palette = ["#7d6d73", "#f3cfdc", "#d8e7b9", "#caa8d8", "#ffb596"];
+const palette = ["#43383d", "#e49cbc", "#f4b285", "#b9cf84", "#8eb7e8", "#c5a4eb"];
+
+const toolMeta: Record<
+  ToolMode,
+  {
+    label: string;
+    icon: typeof PenLine;
+    drawTool: "pen" | "highlighter" | "eraser";
+    defaultWidth: number;
+    opacity: number;
+    widths: number[];
+  }
+> = {
+  fine: {
+    label: "파인펜",
+    icon: PencilLine,
+    drawTool: "pen",
+    defaultWidth: 1.6,
+    opacity: 0.92,
+    widths: [1.2, 1.6, 2.2]
+  },
+  gel: {
+    label: "젤펜",
+    icon: PenLine,
+    drawTool: "pen",
+    defaultWidth: 2.8,
+    opacity: 0.98,
+    widths: [2.2, 2.8, 3.8]
+  },
+  marker: {
+    label: "형광펜",
+    icon: Highlighter,
+    drawTool: "highlighter",
+    defaultWidth: 6,
+    opacity: 0.28,
+    widths: [4.5, 6, 8.5]
+  },
+  eraser: {
+    label: "지우개",
+    icon: Eraser,
+    drawTool: "eraser",
+    defaultWidth: 18,
+    opacity: 1,
+    widths: [12, 18, 26]
+  }
+};
 
 export function HandwritingPad({
   drawing,
@@ -19,12 +64,14 @@ export function HandwritingPad({
   drawing: DrawingItem;
   onChange: (drawing: DrawingItem) => void;
 }) {
-  const [tool, setTool] = useState<ToolMode>("pen");
-  const [color, setColor] = useState("#7d6d73");
-  const [width, setWidth] = useState(2);
+  const [tool, setTool] = useState<ToolMode>("gel");
+  const [color, setColor] = useState("#43383d");
+  const [width, setWidth] = useState(toolMeta.gel.defaultWidth);
   const [strokes, setStrokes] = useState(drawing.payload.strokes);
   const [background, setBackground] = useState<DrawingBackground>(drawing.payload.background);
   const [redoStack, setRedoStack] = useState<DrawingStroke[][]>([]);
+  const [livePoints, setLivePoints] = useState<StrokePoint[]>([]);
+  const [undoCount, setUndoCount] = useState(0);
   const currentStroke = useRef<StrokePoint[]>([]);
   const historyRef = useRef<DrawingStroke[][]>([]);
   const drawingRef = useRef<SVGSVGElement>(null);
@@ -32,6 +79,7 @@ export function HandwritingPad({
   const pushHistory = (snapshot: DrawingStroke[]) => {
     historyRef.current = [...historyRef.current, snapshot];
     if (historyRef.current.length > 30) historyRef.current = historyRef.current.slice(-30);
+    setUndoCount(historyRef.current.length);
   };
 
   const emitChange = (nextStrokes: DrawingStroke[], nextBackground = background) => {
@@ -53,48 +101,59 @@ export function HandwritingPad({
   };
 
   const handlePointerDown = (event: ReactPointerEvent<SVGSVGElement>) => {
+    event.preventDefault();
+    event.currentTarget.setPointerCapture(event.pointerId);
     const point = getPoint(event);
     pushHistory(strokes);
     setRedoStack([]);
 
     if (tool === "eraser") {
-      const erased = eraseStrokesNearPoint(strokes, point, 18);
+      const erased = eraseStrokesNearPoint(strokes, point, width);
       setStrokes(erased);
       emitChange(erased);
       return;
     }
 
     currentStroke.current = [point];
+    setLivePoints([point]);
   };
 
   const handlePointerMove = (event: ReactPointerEvent<SVGSVGElement>) => {
     if (tool === "eraser" && event.buttons === 1) {
       const point = getPoint(event);
-      const erased = eraseStrokesNearPoint(strokes, point, 18);
+      const erased = eraseStrokesNearPoint(strokes, point, width);
       setStrokes(erased);
       emitChange(erased);
       return;
     }
 
     if (event.buttons !== 1 || currentStroke.current.length === 0) return;
-    currentStroke.current = [...currentStroke.current, getPoint(event)];
+    const nextPoints = [...currentStroke.current, getPoint(event)];
+    currentStroke.current = nextPoints;
+    setLivePoints(nextPoints);
   };
 
-  const handlePointerUp = () => {
+  const handlePointerUp = (event: ReactPointerEvent<SVGSVGElement>) => {
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
+
     if (currentStroke.current.length === 0) return;
 
+    const meta = toolMeta[tool];
     const nextStroke: DrawingStroke = {
       id: createId("stroke"),
-      tool: tool === "highlighter" ? "highlighter" : "pen",
+      tool: meta.drawTool === "eraser" ? "pen" : meta.drawTool,
       color,
       width,
-      opacity: tool === "highlighter" ? 0.28 : 0.95,
+      opacity: meta.opacity,
       points: currentStroke.current
     };
     const nextStrokes = [...strokes, nextStroke];
     setStrokes(nextStrokes);
     emitChange(nextStrokes);
     currentStroke.current = [];
+    setLivePoints([]);
   };
 
   const undo = () => {
@@ -103,6 +162,7 @@ export function HandwritingPad({
 
     setRedoStack((stack) => [...stack, strokes]);
     historyRef.current = historyRef.current.slice(0, -1);
+    setUndoCount(historyRef.current.length);
     setStrokes(previous);
     emitChange(previous);
   };
@@ -117,34 +177,42 @@ export function HandwritingPad({
     emitChange(next);
   };
 
+  const selectTool = (nextTool: ToolMode) => {
+    setTool(nextTool);
+    setWidth(toolMeta[nextTool].defaultWidth);
+  };
+
+  const liveStroke =
+    livePoints.length > 0 && tool !== "eraser"
+      ? ({
+          id: "live-stroke",
+          tool: toolMeta[tool].drawTool === "highlighter" ? "highlighter" : "pen",
+          color,
+          width,
+          opacity: toolMeta[tool].opacity,
+          points: livePoints
+        } satisfies DrawingStroke)
+      : null;
+
   return (
     <div className={styles.handwritingShell}>
       <div className={styles.handwritingToolbar}>
-        <div className={styles.inlineButtons}>
-          <button
-            type="button"
-            className={tool === "pen" ? styles.primaryButton : styles.secondaryButton}
-            onClick={() => setTool("pen")}
-          >
-            <PenLine size={16} />
-            Pen
-          </button>
-          <button
-            type="button"
-            className={tool === "highlighter" ? styles.primaryButton : styles.secondaryButton}
-            onClick={() => setTool("highlighter")}
-          >
-            <Highlighter size={16} />
-            Highlighter
-          </button>
-          <button
-            type="button"
-            className={tool === "eraser" ? styles.primaryButton : styles.secondaryButton}
-            onClick={() => setTool("eraser")}
-          >
-            <Eraser size={16} />
-            Erase
-          </button>
+        <div className={styles.toolRow}>
+          {(Object.keys(toolMeta) as ToolMode[]).map((toolKey) => {
+            const meta = toolMeta[toolKey];
+            const Icon = meta.icon;
+            return (
+              <button
+                key={toolKey}
+                type="button"
+                className={tool === toolKey ? styles.toolActive : styles.toolChip}
+                onClick={() => selectTool(toolKey)}
+              >
+                <Icon size={16} />
+                {meta.label}
+              </button>
+            );
+          })}
         </div>
 
         <div className={styles.inlineButtons}>
@@ -156,25 +224,26 @@ export function HandwritingPad({
               style={{ background: swatch }}
               data-active={color === swatch}
               onClick={() => setColor(swatch)}
+              aria-label={`색상 ${swatch}`}
             />
           ))}
         </div>
 
         <div className={styles.inlineButtons}>
-          {[2, 4, 6].map((value) => (
+          {toolMeta[tool].widths.map((value) => (
             <button
               key={value}
               type="button"
-              className={width === value ? styles.primaryButton : styles.secondaryButton}
+              className={width === value ? styles.widthActive : styles.widthChip}
               onClick={() => setWidth(value)}
             >
-              {value}px
+              <span style={{ width: Math.max(4, value * 1.6), height: Math.max(4, value * 1.6) }} />
             </button>
           ))}
-          <button type="button" className={styles.iconAction} onClick={undo}>
+          <button type="button" className={styles.iconAction} onClick={undo} disabled={undoCount === 0}>
             <RotateCcw size={15} />
           </button>
-          <button type="button" className={styles.iconAction} onClick={redo}>
+          <button type="button" className={styles.iconAction} onClick={redo} disabled={redoStack.length === 0}>
             <RotateCw size={15} />
           </button>
         </div>
@@ -190,7 +259,7 @@ export function HandwritingPad({
                 emitChange(strokes, option);
               }}
             >
-              {option}
+              {option === "plain" ? "무지" : option === "ruled" ? "라인" : "도트"}
             </button>
           ))}
         </div>
@@ -203,11 +272,22 @@ export function HandwritingPad({
           onPointerDown={handlePointerDown}
           onPointerMove={handlePointerMove}
           onPointerUp={handlePointerUp}
-          onPointerLeave={handlePointerUp}
+          onPointerCancel={handlePointerUp}
+          onPointerLeave={(event) => {
+            if (!event.currentTarget.hasPointerCapture(event.pointerId)) handlePointerUp(event);
+          }}
         >
           {strokes.map((stroke) => (
-            <path key={stroke.id} d={strokeToSvgPath(stroke)} fill={stroke.color} opacity={stroke.opacity} />
+            <path
+              key={stroke.id}
+              d={strokeToSvgPath(stroke)}
+              fill={stroke.color}
+              opacity={stroke.opacity}
+            />
           ))}
+          {liveStroke ? (
+            <path d={strokeToSvgPath(liveStroke)} fill={liveStroke.color} opacity={liveStroke.opacity} />
+          ) : null}
         </svg>
       </div>
     </div>

@@ -10,7 +10,7 @@ import { AppProviders } from "@/components/providers/app-providers";
 export const metadata: Metadata = {
   title: "Nayoung Notes",
   description:
-    "A single-user scrapbook diary PWA with synced entries, photos, handwriting, and local PIN privacy.",
+    "개인용 스크랩 다이어리 PWA. 계정 연동, 사진, 손글씨, 오프라인 초안, 기기별 PIN 잠금을 지원합니다.",
   applicationName: "Nayoung Notes",
   appleWebApp: {
     capable: true,
@@ -26,7 +26,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="ko">
       <body>
         <AppProviders>{children}</AppProviders>
       </body>

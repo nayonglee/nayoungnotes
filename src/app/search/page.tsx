@@ -3,7 +3,7 @@ import { SearchScreen } from "@/components/search/search-screen";
 
 export default function SearchPage() {
   return (
-    <AppShell title="Search" subtitle="Look up titles, diary text, captions, and checklists.">
+    <AppShell title="검색" subtitle="제목, 본문, 캡션, 체크리스트 검색">
       <SearchScreen />
     </AppShell>
   );
