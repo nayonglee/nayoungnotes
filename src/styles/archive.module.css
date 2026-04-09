@@ -1,0 +1,116 @@
+.page { display: grid; gap: 1rem; }
+.heroRow { display: grid; grid-template-columns: minmax(260px, 0.9fr) minmax(0, 1.1fr); gap: 1rem; }
+.todayCard, .recentCard, .archiveCard {
+  background: rgba(255, 251, 253, 0.94);
+  border: 1px solid rgba(125, 109, 115, 0.16);
+  border-radius: 28px;
+  box-shadow: var(--shadow-card);
+  padding: 1.2rem;
+}
+
+.sectionTag {
+  display: inline-flex;
+  padding: 0.38rem 0.72rem;
+  border-radius: 999px;
+  background: rgba(243, 207, 220, 0.52);
+  color: var(--muted);
+  font-size: 0.76rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.todayCard h3, .archiveCard h3 {
+  margin: 0.8rem 0 0.3rem;
+  font-family: "Newsreader", serif;
+  font-size: 1.8rem;
+}
+
+.todayCard p, .recentCard p { color: var(--muted); margin: 0; line-height: 1.6; }
+.primaryAction, .toggle, .activeToggle, .iconButton, .plainButton, .recentChip, .entryRow { border: none; }
+
+.primaryAction {
+  margin-top: 1rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.85rem 1rem;
+  border-radius: 999px;
+  background: linear-gradient(135deg, rgba(243, 207, 220, 1), rgba(229, 240, 214, 0.95));
+}
+
+.cardHeader { display: flex; justify-content: space-between; align-items: start; gap: 1rem; }
+.plainButton { background: transparent; color: var(--muted); }
+.recentStrip { display: flex; gap: 0.7rem; overflow-x: auto; padding-top: 0.9rem; }
+
+.recentChip {
+  min-width: 140px;
+  display: grid;
+  gap: 0.18rem;
+  text-align: left;
+  padding: 0.85rem 0.9rem;
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(249, 232, 238, 0.74));
+  box-shadow: inset 0 0 0 1px rgba(125, 109, 115, 0.1);
+}
+
+.recentChip span { color: var(--muted); font-size: 0.92rem; }
+.controls { display: flex; flex-wrap: wrap; gap: 0.55rem; }
+
+.iconButton, .toggle, .activeToggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  border-radius: 999px;
+  padding: 0.72rem 0.9rem;
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.activeToggle { background: linear-gradient(135deg, rgba(243, 207, 220, 1), rgba(229, 240, 214, 0.95)); }
+.calendarGrid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 0.55rem; margin-top: 1rem; }
+.weekday { text-align: center; font-size: 0.83rem; color: var(--muted); }
+
+.dayCell {
+  min-height: 94px;
+  border: none;
+  border-radius: 18px;
+  padding: 0.7rem;
+  text-align: left;
+  display: grid;
+  align-content: start;
+  gap: 0.25rem;
+  background: rgba(255, 255, 255, 0.8);
+  box-shadow: inset 0 0 0 1px rgba(125, 109, 115, 0.08);
+}
+
+.dayCell[data-outside="true"] { opacity: 0.46; }
+.dayCell[data-filled="true"] {
+  background: linear-gradient(180deg, rgba(249, 232, 238, 0.92), rgba(255, 255, 255, 0.94));
+  box-shadow: inset 0 0 0 1px rgba(243, 207, 220, 0.28), 0 0 20px rgba(246, 221, 234, 0.18);
+}
+
+.dayCell[data-today="true"] {
+  outline: 1px solid rgba(216, 231, 185, 0.9);
+  box-shadow: inset 0 0 0 1px rgba(216, 231, 185, 0.9), 0 0 18px rgba(229, 240, 214, 0.3);
+}
+
+.dayCell small { color: var(--muted); font-size: 0.8rem; }
+.listView { display: grid; gap: 0.75rem; margin-top: 1rem; }
+
+.entryRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: center;
+  text-align: left;
+  padding: 0.95rem 1rem;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.88);
+  box-shadow: inset 0 0 0 1px rgba(125, 109, 115, 0.1);
+}
+
+.entryRow p, .rowMeta { margin: 0.18rem 0 0; color: var(--muted); }
+.rowMeta { display: grid; justify-items: end; }
+
+@media (max-width: 900px) {
+  .heroRow { grid-template-columns: 1fr; }
+}

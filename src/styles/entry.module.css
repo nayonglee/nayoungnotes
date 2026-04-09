@@ -1,0 +1,226 @@
+.editorPage { display: grid; gap: 1rem; }
+.loadingState { padding: 2rem; border-radius: 24px; background: rgba(255, 255, 255, 0.88); }
+.metaCard, .entryCard {
+  background: rgba(255, 251, 253, 0.94);
+  border: 1px solid rgba(125, 109, 115, 0.16);
+  border-radius: 28px;
+  box-shadow: var(--shadow-card);
+}
+
+.metaCard {
+  padding: 1.2rem;
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: start;
+}
+
+.metaCard h3, .sectionHeader h4 { margin: 0.55rem 0 0.2rem; font-family: "Newsreader", serif; }
+.metaCard p, .sectionHeader p { margin: 0; color: var(--muted); line-height: 1.6; }
+
+.sectionTag {
+  display: inline-flex;
+  padding: 0.38rem 0.72rem;
+  border-radius: 999px;
+  background: rgba(243, 207, 220, 0.52);
+  color: var(--muted);
+  font-size: 0.76rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.metaActions, .inlineButtons, .moodRow, .themeRow, .boardToolbar, .stickerRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+}
+
+.metaActions { justify-content: flex-end; }
+.primaryButton, .secondaryButton, .addButton, .moodChip, .moodActive, .themeChip, .themeActive, .stickerPicker, .iconAction { border: none; }
+
+.primaryButton, .secondaryButton, .addButton, .moodChip, .moodActive, .themeChip, .themeActive, .stickerPicker {
+  border-radius: 999px;
+  padding: 0.72rem 0.95rem;
+}
+
+.primaryButton, .moodActive, .themeActive {
+  background: linear-gradient(135deg, rgba(243, 207, 220, 1), rgba(229, 240, 214, 0.95));
+  box-shadow: var(--shadow-card), 0 0 18px rgba(246, 221, 234, 0.28);
+}
+
+.secondaryButton, .moodChip, .themeChip, .stickerPicker, .addButton {
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: inset 0 0 0 1px rgba(125, 109, 115, 0.12);
+}
+
+.saveChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  border-radius: 999px;
+  padding: 0.68rem 0.9rem;
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.saveChip_saved { background: rgba(229, 240, 214, 0.8); }
+.saveChip_syncing { background: rgba(243, 207, 220, 0.72); }
+.saveChip_offline-draft { background: rgba(255, 232, 213, 0.92); }
+.saveChip_error { background: rgba(255, 214, 219, 0.92); }
+
+.entryCard { padding: 1.15rem; display: grid; gap: 1rem; }
+.sectionHeader { display: flex; justify-content: space-between; align-items: start; }
+
+.titleInput, .diaryInput, .todoInput, .photoCaption {
+  width: 100%;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.88);
+  box-shadow: inset 0 0 0 1px rgba(125, 109, 115, 0.12), 0 0 0 rgba(246, 221, 234, 0);
+  transition: box-shadow 140ms ease;
+}
+
+.titleInput:focus, .diaryInput:focus, .todoInput:focus, .photoCaption:focus {
+  box-shadow: inset 0 0 0 1px rgba(216, 231, 185, 0.78), 0 0 22px rgba(246, 221, 234, 0.4);
+}
+
+.titleInput { padding: 1rem 1.1rem; font-size: 1.16rem; }
+.diaryInput { padding: 1rem 1.1rem; line-height: 1.7; resize: none; }
+.grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+.themeRow { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.themeChip, .themeActive { display: grid; gap: 0.35rem; text-align: left; }
+.themeChip span, .themeActive span { color: var(--muted); font-size: 0.88rem; line-height: 1.45; }
+.moodChip { background: var(--chip-accent, rgba(255, 255, 255, 0.92)); }
+.todoList { display: grid; gap: 0.75rem; }
+.todoRow { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 0.7rem; align-items: start; }
+
+.todoCheck {
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  border: none;
+  margin-top: 0.45rem;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: inset 0 0 0 1px rgba(125, 109, 115, 0.18);
+}
+
+.todoCheck[data-checked="true"] { background: linear-gradient(135deg, rgba(243, 207, 220, 1), rgba(216, 231, 185, 1)); }
+.todoInput { resize: none; padding: 0.85rem 0.95rem; line-height: 1.5; }
+
+.iconAction {
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: inset 0 0 0 1px rgba(125, 109, 115, 0.1);
+}
+
+.addButton { display: inline-flex; align-items: center; gap: 0.45rem; justify-self: start; }
+.photoBoardSection { display: grid; gap: 0.85rem; }
+
+.photoBoard {
+  min-height: 360px;
+  border-radius: 28px;
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at top right, rgba(246, 221, 234, 0.6), transparent 22%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(255, 247, 252, 0.92));
+  box-shadow: inset 0 0 0 1px rgba(125, 109, 115, 0.1), 0 0 22px rgba(246, 221, 234, 0.18);
+}
+
+.photoBoard::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(rgba(125, 109, 115, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(125, 109, 115, 0.03) 1px, transparent 1px);
+  background-size: 22px 22px;
+  pointer-events: none;
+}
+
+.photoCard, .stickerCard { position: absolute; left: 0; top: 0; }
+
+.photoCard {
+  width: 188px;
+  padding: 0.55rem 0.55rem 0.75rem;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.97);
+  box-shadow: var(--shadow-card);
+}
+
+.photoToolbar, .stickerToolbar { display: flex; justify-content: flex-end; gap: 0.35rem; margin-bottom: 0.45rem; }
+
+.photoFrame {
+  position: relative;
+  border-radius: 14px;
+  overflow: hidden;
+  background: linear-gradient(180deg, rgba(249, 232, 238, 0.86), rgba(255, 255, 255, 0.95));
+  aspect-ratio: 1 / 1;
+}
+
+.photoImage, .photoPlaceholder { width: 100%; height: 100%; object-fit: cover; }
+.photoPlaceholder { background: linear-gradient(135deg, rgba(243, 207, 220, 0.52), rgba(229, 240, 214, 0.72)); }
+.photoCaption { margin-top: 0.55rem; resize: none; padding: 0.65rem 0.75rem; font-size: 0.92rem; }
+
+.stickerCard {
+  max-width: 150px;
+  padding: 0.6rem 0.65rem 0.75rem;
+  border-radius: 20px;
+  box-shadow: var(--shadow-card);
+}
+
+.stickerCard span { font-family: "Caveat", cursive; font-size: 1.5rem; }
+
+.boardEmpty {
+  position: absolute;
+  inset: auto 1rem 1rem 1rem;
+  border-radius: 18px;
+  padding: 0.95rem 1rem;
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.boardEmpty p { margin: 0.3rem 0 0; color: var(--muted); }
+.handwritingShell { display: grid; gap: 0.8rem; }
+.handwritingToolbar { display: grid; gap: 0.7rem; }
+
+.colorSwatch {
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 999px;
+  box-shadow: 0 0 0 1px rgba(125, 109, 115, 0.12), 0 0 0 0 rgba(255, 255, 255, 0);
+}
+
+.colorSwatch[data-active="true"] { box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.94), 0 0 0 4px rgba(125, 109, 115, 0.18); }
+
+.canvasWrap {
+  min-height: 340px;
+  border-radius: 26px;
+  overflow: hidden;
+  position: relative;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: inset 0 0 0 1px rgba(125, 109, 115, 0.12);
+}
+
+.canvasWrap[data-background="ruled"] {
+  background:
+    linear-gradient(rgba(125, 109, 115, 0.06) 1px, transparent 1px),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(255, 248, 251, 0.94));
+  background-size: 100% 32px;
+}
+
+.canvasWrap[data-background="dot"] {
+  background:
+    radial-gradient(circle, rgba(125, 109, 115, 0.14) 1px, transparent 1px),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(255, 248, 251, 0.94));
+  background-size: 18px 18px, auto;
+}
+
+.canvas { width: 100%; height: 340px; touch-action: none; }
+
+@media (max-width: 920px) {
+  .grid, .themeRow { grid-template-columns: 1fr; }
+  .metaCard { flex-direction: column; }
+}
