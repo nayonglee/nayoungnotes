@@ -18,6 +18,11 @@ import {
   signInWithPassword,
   signUpWithPassword
 } from "@/lib/auth";
+import {
+  clearRuntimeSupabaseConfig,
+  loadRuntimeSupabaseConfig,
+  saveRuntimeSupabaseConfig
+} from "@/lib/supabase/client";
 import { useAuthStore } from "@/store/auth-store";
 import styles from "@/styles/landing.module.css";
 
@@ -34,6 +39,13 @@ export function LandingScreen() {
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
+  const [runtimeUrl, setRuntimeUrl] = useState(() => loadRuntimeSupabaseConfig()?.url ?? "");
+  const [runtimeAnonKey, setRuntimeAnonKey] = useState(
+    () => loadRuntimeSupabaseConfig()?.anonKey ?? ""
+  );
+  const [runtimeBucket, setRuntimeBucket] = useState(
+    () => loadRuntimeSupabaseConfig()?.bucket ?? "diary-photos"
+  );
 
   useEffect(() => {
     if (sessionReady && viewer) {
@@ -76,6 +88,28 @@ export function LandingScreen() {
     startTransition(() => {
       router.push("/archive");
     });
+  };
+
+  const saveRuntimeConfig = () => {
+    if (!runtimeUrl.trim() || !runtimeAnonKey.trim()) {
+      setMessage("Supabase URL과 anon key를 모두 입력해 주세요.");
+      return;
+    }
+
+    saveRuntimeSupabaseConfig({
+      url: runtimeUrl.trim(),
+      anonKey: runtimeAnonKey.trim(),
+      bucket: runtimeBucket.trim() || "diary-photos"
+    });
+    setMessage("이 기기에 Supabase 연결 정보를 저장했습니다. 이제 계정 로그인을 사용할 수 있습니다.");
+  };
+
+  const clearRuntimeConfig = () => {
+    clearRuntimeSupabaseConfig();
+    setRuntimeUrl("");
+    setRuntimeAnonKey("");
+    setRuntimeBucket("diary-photos");
+    setMessage("기기에 저장된 Supabase 연결 정보를 지웠습니다.");
   };
 
   return (
@@ -222,10 +256,43 @@ export function LandingScreen() {
               <strong>지금은 로컬 미리보기 상태입니다</strong>
             </div>
             <p>
-              `.env.local`에 `NEXT_PUBLIC_SUPABASE_URL`,
-              `NEXT_PUBLIC_SUPABASE_ANON_KEY`를 넣고 `supabase/schema.sql`을 적용하면 실제 계정
-              연동이 켜집니다.
+              `.env.local`로 빌드할 수도 있고, 아래에 Supabase URL과 anon key를 넣어서 이 기기에서
+              바로 연결할 수도 있습니다.
             </p>
+            <div className={styles.setupForm}>
+              <label className={styles.setupField}>
+                Supabase URL
+                <input
+                  value={runtimeUrl}
+                  onChange={(event) => setRuntimeUrl(event.target.value)}
+                  placeholder="https://your-project.supabase.co"
+                />
+              </label>
+              <label className={styles.setupField}>
+                Supabase anon key
+                <input
+                  value={runtimeAnonKey}
+                  onChange={(event) => setRuntimeAnonKey(event.target.value)}
+                  placeholder="eyJ..."
+                />
+              </label>
+              <label className={styles.setupField}>
+                Storage bucket
+                <input
+                  value={runtimeBucket}
+                  onChange={(event) => setRuntimeBucket(event.target.value)}
+                  placeholder="diary-photos"
+                />
+              </label>
+            </div>
+            <div className={styles.setupActions}>
+              <button type="button" className={styles.primaryAction} onClick={saveRuntimeConfig}>
+                이 기기에 저장
+              </button>
+              <button type="button" className={styles.secondaryAction} onClick={clearRuntimeConfig}>
+                입력값 지우기
+              </button>
+            </div>
           </div>
         ) : (
           <div className={styles.setupCard}>

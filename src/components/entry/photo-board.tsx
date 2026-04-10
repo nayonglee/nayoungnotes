@@ -53,7 +53,7 @@ function stickerGlyph(stickerId: string) {
     case "strawberry":
       return "♡";
     case "ribbon":
-      return "🎀";
+      return "✦";
     case "flower":
       return "✿";
     default:

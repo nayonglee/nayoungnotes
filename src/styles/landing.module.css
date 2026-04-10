@@ -300,6 +300,32 @@
   margin-bottom: 0.45rem;
 }
 
+.setupForm {
+  display: grid;
+  gap: 0.8rem;
+  margin-top: 0.9rem;
+}
+
+.setupField {
+  display: grid;
+  gap: 0.4rem;
+  color: var(--muted);
+}
+
+.setupField input {
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.94);
+  padding: 0.82rem 0.92rem;
+  box-shadow: inset 0 0 0 1px rgba(140, 116, 126, 0.12);
+}
+
+.setupActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+  margin-top: 0.9rem;
+}
+
 @media (max-width: 1040px) {
   .page {
     grid-template-columns: 1fr;

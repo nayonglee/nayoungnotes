@@ -13,7 +13,11 @@ import {
   listPreviewEntries,
   savePreviewEntry
 } from "@/lib/local/database";
-import { getSupabaseClient, isSupabaseConfigured } from "@/lib/supabase/client";
+import {
+  getStorageBucket,
+  getSupabaseClient,
+  isSupabaseConfigured
+} from "@/lib/supabase/client";
 import { viewerKey } from "@/lib/utils";
 import type {
   DiaryEntryRecord,
@@ -47,7 +51,7 @@ interface EntryItemRow {
 }
 
 function photoBucket() {
-  return process.env.NEXT_PUBLIC_SUPABASE_STORAGE_BUCKET ?? "diary-photos";
+  return getStorageBucket();
 }
 
 function normalizeStyle(row: EntryItemRow) {
