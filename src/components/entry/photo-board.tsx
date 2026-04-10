@@ -252,8 +252,8 @@ export function PhotoBoard({
       const rect = boardRef.current?.getBoundingClientRect();
       if (!rect) return;
 
-      const frameWidth = dragging.kind === "photo" ? 180 : 94;
-      const frameHeight = dragging.kind === "photo" ? 210 : 94;
+      const frameWidth = dragging.kind === "photo" ? 192 : 94;
+      const frameHeight = dragging.kind === "photo" ? 228 : 94;
       const x = clamp(event.clientX - rect.left - dragging.offsetX, 8, rect.width - frameWidth);
       const y = clamp(event.clientY - rect.top - dragging.offsetY, 8, rect.height - frameHeight);
 
@@ -328,8 +328,8 @@ export function PhotoBoard({
     const rect = boardRef.current?.getBoundingClientRect();
     const boardWidth = rect?.width ?? 760;
     const boardHeight = rect?.height ?? 420;
-    const cardWidth = boardWidth < 560 ? 152 : 188;
-    const cardHeight = cardWidth + 86;
+    const cardWidth = boardWidth < 560 ? 152 : 192;
+    const cardHeight = cardWidth + 92;
     const safeWidth = Math.max(boardWidth - cardWidth - 16, 8);
     const safeHeight = Math.max(boardHeight - cardHeight - 18, 8);
 

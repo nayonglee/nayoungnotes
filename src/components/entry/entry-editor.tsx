@@ -140,7 +140,23 @@ export function EntryEditor({ entryDate }: { entryDate: string }) {
                 <ArrowLeft size={15} />
                 Archive
               </button>
-              <h3>{formatEntryDate(entryDate)}</h3>
+              <div className={styles.metaTitleRow}>
+                <div className={styles.metaDateBlock}>
+                  <span className={styles.fieldLabel}>Date</span>
+                  <h3>{formatEntryDate(entryDate)}</h3>
+                </div>
+                <label className={styles.metaTitleField}>
+                  <span className={styles.fieldLabel}>Title</span>
+                  <input
+                    className={styles.metaTitleInput}
+                    value={record.title}
+                    onChange={(event) =>
+                      updateRecord((current) => ({ ...current, title: event.target.value }))
+                    }
+                    placeholder="Name this page"
+                  />
+                </label>
+              </div>
             </div>
             <div className={styles.metaActions}>
               <SaveStateChip state={status?.state ?? "saved"} />
@@ -149,16 +165,6 @@ export function EntryEditor({ entryDate }: { entryDate: string }) {
                 Delete page
               </button>
             </div>
-          </section>
-
-          <section className={styles.entryCard}>
-            <label className={styles.fieldLabel}>Title</label>
-            <input
-              className={styles.titleInput}
-              value={record.title}
-              onChange={(event) => updateRecord((current) => ({ ...current, title: event.target.value }))}
-              placeholder="Name this page"
-            />
           </section>
 
           <section className={styles.grid}>
