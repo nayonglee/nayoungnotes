@@ -10,8 +10,8 @@ export default function OfflinePage() {
       }}
     >
       <section>
-        <h1>오프라인 상태입니다.</h1>
-        <p>초안은 기기에 저장되고, 연결이 돌아오면 다시 동기화됩니다.</p>
+        <h1>You&apos;re offline.</h1>
+        <p>Drafts stay on this device and will sync again when the connection returns.</p>
       </section>
     </main>
   );

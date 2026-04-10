@@ -23,6 +23,7 @@ import type { DiaryEntryRecord } from "@/types/diary";
 import { HandwritingPad } from "@/components/entry/handwriting-pad";
 import { PhotoBoard } from "@/components/entry/photo-board";
 import { SaveStateChip } from "@/components/entry/save-state-chip";
+import { TimePlanner } from "@/components/entry/time-planner";
 import { TodoEditor } from "@/components/entry/todo-editor";
 import styles from "@/styles/entry.module.css";
 
@@ -113,7 +114,7 @@ export function EntryEditor({ entryDate }: { entryDate: string }) {
   };
 
   const handleDelete = async () => {
-    if (!record || !viewer || !window.confirm("이 페이지를 삭제할까요?")) return;
+    if (!record || !viewer || !window.confirm("Delete this page?")) return;
 
     if (!navigator.onLine) {
       await queueDelete(viewer, record);
@@ -126,21 +127,21 @@ export function EntryEditor({ entryDate }: { entryDate: string }) {
     router.push("/archive");
   };
 
-  if (!record) return <div className={styles.loadingState}>페이지를 불러오는 중입니다.</div>;
+  if (!record) return <div className={styles.loadingState}>Loading page...</div>;
 
   return (
     <div className={styles.editorPage} data-theme-preset={record.themeConfig.preset}>
       <section className={styles.metaCard}>
         <div>
-          <span className={styles.sectionTag}>오늘</span>
+          <span className={styles.sectionTag}>page</span>
           <h3>{formatEntryDate(entryDate)}</h3>
-          <p>제목, 체크리스트, 본문, 사진, 손글씨를 한 페이지에서 정리합니다.</p>
+          <p>Keep the structure neat while still leaving room for photos, stickers, and pen notes.</p>
         </div>
         <div className={styles.metaActions}>
           <SaveStateChip state={status?.state ?? "saved"} />
           <button type="button" className={styles.secondaryButton} onClick={handleDelete}>
             <Trash2 size={15} />
-            페이지 삭제
+            Delete page
           </button>
         </div>
       </section>
@@ -148,15 +149,15 @@ export function EntryEditor({ entryDate }: { entryDate: string }) {
       <section className={styles.entryCard}>
         <div className={styles.sectionHeader}>
           <div>
-            <span className={styles.sectionTag}>표지</span>
-            <h4>오늘 제목</h4>
+            <span className={styles.sectionTag}>cover</span>
+            <h4>Title</h4>
           </div>
         </div>
         <input
           className={styles.titleInput}
           value={record.title}
           onChange={(event) => updateRecord((current) => ({ ...current, title: event.target.value }))}
-          placeholder="오늘 페이지 제목"
+          placeholder="Name this page"
         />
 
         <div className={styles.moodRow}>
@@ -206,8 +207,8 @@ export function EntryEditor({ entryDate }: { entryDate: string }) {
         <article className={styles.entryCard}>
           <div className={styles.sectionHeader}>
             <div>
-              <span className={styles.sectionTag}>체크</span>
-              <h4>빠른 체크리스트</h4>
+              <span className={styles.sectionTag}>checklist</span>
+              <h4>Quick checklist</h4>
             </div>
           </div>
           <TodoEditor
@@ -224,24 +225,21 @@ export function EntryEditor({ entryDate }: { entryDate: string }) {
         <article className={styles.entryCard}>
           <div className={styles.sectionHeader}>
             <div>
-              <span className={styles.sectionTag}>본문</span>
-              <h4>본문</h4>
+              <span className={styles.sectionTag}>plan</span>
+              <h4>Time blocks</h4>
             </div>
           </div>
-          <TextareaAutosize
-            className={styles.diaryInput}
-            minRows={8}
-            value={record.text.payload.content}
-            onChange={(event) =>
+          <TimePlanner
+            blocks={record.planner.payload.blocks}
+            onChange={(blocks) =>
               updateRecord((current) => ({
                 ...current,
-                text: {
-                  ...current.text,
-                  payload: { content: event.target.value }
+                planner: {
+                  ...current.planner,
+                  payload: { blocks }
                 }
               }))
             }
-            placeholder="오늘 있었던 일, 기분, 메모를 편하게 적어 주세요."
           />
         </article>
       </section>
@@ -249,8 +247,32 @@ export function EntryEditor({ entryDate }: { entryDate: string }) {
       <section className={styles.entryCard}>
         <div className={styles.sectionHeader}>
           <div>
-            <span className={styles.sectionTag}>보드</span>
-            <h4>사진 / 스티커 보드</h4>
+            <span className={styles.sectionTag}>journal</span>
+            <h4>Diary</h4>
+          </div>
+        </div>
+        <TextareaAutosize
+          className={styles.diaryInput}
+          minRows={8}
+          value={record.text.payload.content}
+          onChange={(event) =>
+            updateRecord((current) => ({
+              ...current,
+              text: {
+                ...current.text,
+                payload: { content: event.target.value }
+              }
+            }))
+          }
+          placeholder="Write the story of the day, what happened, or what you want to remember."
+        />
+      </section>
+
+      <section className={styles.entryCard}>
+        <div className={styles.sectionHeader}>
+          <div>
+            <span className={styles.sectionTag}>board</span>
+            <h4>Photo board</h4>
           </div>
         </div>
         <PhotoBoard
@@ -264,8 +286,8 @@ export function EntryEditor({ entryDate }: { entryDate: string }) {
       <section className={styles.entryCard}>
         <div className={styles.sectionHeader}>
           <div>
-            <span className={styles.sectionTag}>펜</span>
-            <h4>손글씨</h4>
+            <span className={styles.sectionTag}>pen</span>
+            <h4>Handwriting</h4>
           </div>
         </div>
         <HandwritingPad

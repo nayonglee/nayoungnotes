@@ -1,0 +1,121 @@
+"use client";
+
+import type { KeyboardEvent } from "react";
+import TextareaAutosize from "react-textarea-autosize";
+import { CirclePlus, Clock3, Trash2 } from "lucide-react";
+import { createPlannerBlock } from "@/lib/entry";
+import type { PlannerBlock } from "@/types/diary";
+import styles from "@/styles/entry.module.css";
+
+function nextHour(value: string) {
+  const [hour, minute] = value.split(":").map(Number);
+  const next = `${String(Math.min(hour + 1, 23)).padStart(2, "0")}:${String(minute || 0).padStart(2, "0")}`;
+  return next;
+}
+
+export function TimePlanner({
+  blocks,
+  onChange
+}: {
+  blocks: PlannerBlock[];
+  onChange: (blocks: PlannerBlock[]) => void;
+}) {
+  const safeBlocks = blocks.length > 0 ? blocks : [createPlannerBlock()];
+
+  const updateBlock = (id: string, patch: Partial<PlannerBlock>) => {
+    onChange(safeBlocks.map((block) => (block.id === id ? { ...block, ...patch } : block)));
+  };
+
+  const addBlock = (afterIndex?: number) => {
+    if (typeof afterIndex === "number") {
+      const anchor = safeBlocks[afterIndex];
+      const next = [...safeBlocks];
+      next.splice(afterIndex + 1, 0, createPlannerBlock(anchor.end, nextHour(anchor.end)));
+      onChange(next);
+      return;
+    }
+
+    const last = safeBlocks.at(-1);
+    onChange([
+      ...safeBlocks,
+      createPlannerBlock(last?.end ?? "18:00", nextHour(last?.end ?? "18:00"))
+    ]);
+  };
+
+  const removeBlock = (id: string) => {
+    onChange(safeBlocks.filter((block) => block.id !== id));
+  };
+
+  const handleKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>, index: number, block: PlannerBlock) => {
+    if (event.key === "Enter" && !event.shiftKey) {
+      event.preventDefault();
+      addBlock(index);
+    }
+
+    if (
+      event.key === "Backspace" &&
+      !block.title &&
+      !block.note &&
+      safeBlocks.length > 1
+    ) {
+      event.preventDefault();
+      removeBlock(block.id);
+    }
+  };
+
+  return (
+    <div className={styles.plannerList}>
+      {safeBlocks.map((block, index) => (
+        <div key={block.id} className={styles.plannerCard}>
+          <div className={styles.plannerTimeRow}>
+            <span className={styles.plannerClock}>
+              <Clock3 size={14} />
+            </span>
+            <input
+              type="time"
+              className={styles.timeInput}
+              value={block.start}
+              onChange={(event) => updateBlock(block.id, { start: event.target.value })}
+            />
+            <span className={styles.plannerDivider}>to</span>
+            <input
+              type="time"
+              className={styles.timeInput}
+              value={block.end}
+              onChange={(event) => updateBlock(block.id, { end: event.target.value })}
+            />
+            <button
+              type="button"
+              className={styles.iconAction}
+              onClick={() => removeBlock(block.id)}
+              aria-label="Remove time block"
+            >
+              <Trash2 size={15} />
+            </button>
+          </div>
+
+          <input
+            className={styles.plannerTitleInput}
+            value={block.title}
+            onChange={(event) => updateBlock(block.id, { title: event.target.value })}
+            placeholder="Plan title"
+          />
+
+          <TextareaAutosize
+            className={styles.plannerNoteInput}
+            minRows={1}
+            value={block.note}
+            onChange={(event) => updateBlock(block.id, { note: event.target.value })}
+            onKeyDown={(event) => handleKeyDown(event, index, block)}
+            placeholder="Small note or location"
+          />
+        </div>
+      ))}
+
+      <button type="button" className={styles.addButton} onClick={() => addBlock()}>
+        <CirclePlus size={16} />
+        Add time block
+      </button>
+    </div>
+  );
+}

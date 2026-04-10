@@ -25,7 +25,7 @@ export function SearchScreen() {
         <input
           value={query}
           onChange={(event) => setQuery(event.target.value)}
-          placeholder="제목, 본문, 캡션, 체크리스트 검색"
+          placeholder="Search titles, journal text, captions, tasks, or plans"
         />
       </label>
 
@@ -34,7 +34,7 @@ export function SearchScreen() {
           <Link key={entry.entryDate} href={`/entry/${entry.entryDate}`} className={styles.resultCard}>
             <div>
               <strong>{entry.title}</strong>
-              <p>{entry.previewText || "본문이 아직 없습니다."}</p>
+              <p>{entry.previewText || "No journal text yet."}</p>
             </div>
             <span>{entry.entryDate}</span>
           </Link>
@@ -42,8 +42,8 @@ export function SearchScreen() {
 
         {!results.isFetching && (results.data ?? []).length === 0 ? (
           <article className={styles.emptyState}>
-            <strong>검색 결과가 없습니다.</strong>
-            <p>제목, 캡션, 본문에 들어간 단어로 다시 찾아보세요.</p>
+            <strong>No results yet.</strong>
+            <p>Try a title word, a caption, a task, or a phrase from your journal.</p>
           </article>
         ) : null}
       </section>

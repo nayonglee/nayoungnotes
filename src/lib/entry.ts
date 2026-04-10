@@ -5,6 +5,7 @@ import type {
   DrawingItem,
   DrawingSheet,
   EntryOverview,
+  PlannerBlock,
   PersistedEntryItemRow,
   PhotoItem,
   PresetRotation,
@@ -31,7 +32,7 @@ export function createDrawingSheet(
 ): DrawingSheet {
   return {
     id: createId("sheet"),
-    title: title ?? `시트 ${index + 1}`,
+    title: title ?? `Sheet ${index + 1}`,
     background,
     strokes: []
   };
@@ -66,6 +67,14 @@ export function createBlankEntry(entryDate: string, viewer?: Viewer | null): Dia
       styleConfig: baseStyle(),
       updatedAt: now
     },
+    planner: {
+      id: createId("planner"),
+      itemType: "planner",
+      orderIndex: 2,
+      payload: { blocks: [createPlannerBlock(), createPlannerBlock("11:00", "12:00")] },
+      styleConfig: baseStyle(),
+      updatedAt: now
+    },
     photos: [],
     stickers: [],
     drawing: {
@@ -86,14 +95,64 @@ export function createTodoCard(text = ""): TodoCard {
   return { id: createId("todo_item"), text, checked: false };
 }
 
+export function createPlannerBlock(start = "09:00", end = "10:00"): PlannerBlock {
+  return {
+    id: createId("plan_block"),
+    start,
+    end,
+    title: "",
+    note: ""
+  };
+}
+
+export function normalizeEntryRecord(
+  record: DiaryEntryRecord,
+  viewer?: Viewer | null
+): DiaryEntryRecord {
+  const base = createBlankEntry(record.entryDate, viewer);
+  const drawingPayload =
+    record.drawing?.payload && Array.isArray(record.drawing.payload.sheets)
+      ? record.drawing.payload
+      : base.drawing.payload;
+
+  return {
+    ...base,
+    ...record,
+    text: {
+      ...base.text,
+      ...record.text,
+      payload: { content: record.text?.payload?.content ?? "" }
+    },
+    todo: {
+      ...base.todo,
+      ...record.todo,
+      payload: { items: record.todo?.payload?.items ?? [] }
+    },
+    planner: {
+      ...base.planner,
+      ...record.planner,
+      payload: { blocks: record.planner?.payload?.blocks ?? base.planner.payload.blocks }
+    },
+    photos: record.photos ?? [],
+    stickers: record.stickers ?? [],
+    drawing: {
+      ...base.drawing,
+      ...record.drawing,
+      payload: drawingPayload
+    }
+  };
+}
+
 export function buildSearchText(record: DiaryEntryRecord) {
+  const normalized = normalizeEntryRecord(record);
   return [
-    record.title,
-    record.mood ?? "",
-    record.text.payload.content,
-    ...record.todo.payload.items.map((item) => item.text),
-    ...record.photos.map((item) => item.payload.caption),
-    ...record.stickers.map((item) => item.payload.label)
+    normalized.title,
+    normalized.mood ?? "",
+    normalized.text.payload.content,
+    ...normalized.todo.payload.items.map((item) => item.text),
+    ...normalized.planner.payload.blocks.flatMap((item) => [item.title, item.note]),
+    ...normalized.photos.map((item) => item.payload.caption),
+    ...normalized.stickers.map((item) => item.payload.label)
   ]
     .join(" ")
     .replace(/\s+/g, " ")
@@ -105,17 +164,24 @@ export function withSearchText(record: DiaryEntryRecord): DiaryEntryRecord {
 }
 
 export function toEntryOverview(record: DiaryEntryRecord): EntryOverview {
+  const normalized = normalizeEntryRecord(record);
   return {
-    id: record.id,
-    entryDate: record.entryDate,
-    title: record.title || "제목 없음",
-    mood: record.mood,
-    updatedAt: record.updatedAt,
-    previewText: record.text.payload.content.slice(0, 140),
-    photoCount: record.photos.length,
-    todoCount: record.todo.payload.items.length,
-    completedTodoCount: record.todo.payload.items.filter((item) => item.checked).length,
-    themeConfig: record.themeConfig
+    id: normalized.id,
+    entryDate: normalized.entryDate,
+    title: normalized.title || "Untitled page",
+    mood: normalized.mood,
+    updatedAt: normalized.updatedAt,
+    previewText:
+      normalized.text.payload.content.slice(0, 140) || normalized.planner.payload.blocks[0]?.title || "",
+    photoCount: normalized.photos.length,
+    todoCount: normalized.todo.payload.items.length,
+    completedTodoCount: normalized.todo.payload.items.filter((item) => item.checked).length,
+    plannerCount: normalized.planner.payload.blocks.filter(
+      (item) => item.title.trim() || item.note.trim()
+    ).length,
+    coverPhotoUrl: normalized.photos[0]?.payload.url,
+    coverPhotoLocalAssetId: normalized.photos[0]?.payload.localAssetId,
+    themeConfig: normalized.themeConfig
   };
 }
 
@@ -150,6 +216,13 @@ export function recordToPersistenceItems(record: DiaryEntryRecord): PersistedEnt
       order_index: 1,
       payload: record.todo.payload as unknown as Record<string, unknown>,
       style_config: record.todo.styleConfig as unknown as Record<string, unknown>
+    },
+    {
+      id: record.planner.id,
+      item_type: "planner",
+      order_index: 2,
+      payload: record.planner.payload as unknown as Record<string, unknown>,
+      style_config: record.planner.styleConfig as unknown as Record<string, unknown>
     },
     ...photos,
     ...stickers,

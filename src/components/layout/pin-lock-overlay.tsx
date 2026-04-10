@@ -28,11 +28,11 @@ export function PinLockOverlay() {
       setLocked(false);
       touchActivity();
       setPinValue("");
-      setError("");
-      return;
-    }
+    setError("");
+    return;
+  }
 
-    setError("PIN이 맞지 않습니다.");
+    setError("That PIN does not match.");
     setPinValue("");
   };
 
@@ -41,11 +41,11 @@ export function PinLockOverlay() {
       <form className={styles.lockCard} onSubmit={handleSubmit}>
         <span className={styles.lockBadge}>
           <LockKeyhole size={16} />
-          기기 잠금
+          Device lock
         </span>
-        <h3>PIN 입력</h3>
+        <h3>Enter PIN</h3>
         <p>
-          이 PIN은 이 기기에만 저장됩니다. 계정 로그인과 별개이며 서버로 전송되지 않습니다.
+          This PIN stays on this device only. It is separate from your account sign-in and never sent to the server.
         </p>
 
         <div className={styles.pinDots} aria-hidden="true">
@@ -63,14 +63,14 @@ export function PinLockOverlay() {
           maxLength={4}
           value={pinValue}
           onChange={(event) => setPinValue(event.target.value.replace(/\D/g, "").slice(0, 4))}
-          placeholder="4자리 PIN"
+          placeholder="4-digit PIN"
         />
 
         {error ? <p className={styles.lockError}>{error}</p> : null}
 
         <div className={styles.lockActions}>
           <button type="submit" className={styles.primaryButton}>
-            잠금 해제
+            Unlock
           </button>
         </div>
       </form>

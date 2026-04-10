@@ -7,13 +7,14 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { CalendarDays, Search, Settings, Sparkles } from "lucide-react";
 import { PinLockOverlay } from "@/components/layout/pin-lock-overlay";
+import { ScrapIcon } from "@/components/ui/scrap-icon";
 import { useAuthStore } from "@/store/auth-store";
 import styles from "@/styles/shell.module.css";
 
 const navigation = [
-  { href: "/archive", label: "아카이브", icon: CalendarDays },
-  { href: "/search", label: "검색", icon: Search },
-  { href: "/settings", label: "설정", icon: Settings }
+  { href: "/archive", label: "Archive", icon: CalendarDays },
+  { href: "/search", label: "Search", icon: Search },
+  { href: "/settings", label: "Settings", icon: Settings }
 ];
 
 export function AppShell({
@@ -42,7 +43,7 @@ export function AppShell({
       <div className={styles.loadingShell}>
         <div className={styles.loadingCard}>
           <Sparkles size={24} />
-          <p>페이지를 준비하고 있습니다.</p>
+          <p>Loading your pages...</p>
         </div>
       </div>
     );
@@ -55,18 +56,22 @@ export function AppShell({
           <div className={styles.coverTop}>
             <span className={styles.coverLabel}>Nayoung Notes</span>
             <span className={styles.modeBadge} data-mode={viewer.mode}>
-              {viewer.mode === "preview" ? "로컬 미리보기" : "클라우드"}
+              {viewer.mode === "preview" ? "Local preview" : "Cloud sync"}
             </span>
           </div>
 
           <div className={styles.coverBody}>
-            <div className={styles.coverSpine}>♡ ★ ◎</div>
+            <div className={styles.coverSpine}>
+              <ScrapIcon kind="heart" size={18} />
+              <span>scrap</span>
+              <ScrapIcon kind="star" size={18} />
+            </div>
             <div className={styles.coverMain}>
               <h1>{title}</h1>
               <p>{subtitle}</p>
               <div className={styles.coverMeta}>
                 <span>{viewer.email ?? "preview@nayoungnotes.local"}</span>
-                <span>{configured ? "연동 준비 완료" : "연동 설정 필요"}</span>
+                <span>{configured ? "Sync ready" : "Setup needed"}</span>
               </div>
             </div>
           </div>
@@ -95,7 +100,7 @@ export function AppShell({
       <div className={styles.contentColumn}>
         <header className={styles.header}>
           <div>
-            <span className={styles.headerLabel}>personal diary</span>
+            <span className={styles.headerLabel}>private scrapbook</span>
             <h2>{title}</h2>
             <p className={styles.headerSubtitle}>{subtitle}</p>
           </div>

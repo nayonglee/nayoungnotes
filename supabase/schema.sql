@@ -16,13 +16,20 @@ create table if not exists public.entries (
 create table if not exists public.entry_items (
   id uuid primary key default gen_random_uuid(),
   entry_id uuid not null references public.entries (id) on delete cascade,
-  item_type text not null check (item_type in ('text', 'todo', 'photo', 'drawing', 'sticker')),
+  item_type text not null,
   order_index integer not null default 0,
   payload jsonb not null default '{}'::jsonb,
   style_config jsonb not null default '{}'::jsonb,
   created_at timestamptz not null default timezone('utc', now()),
   updated_at timestamptz not null default timezone('utc', now())
 );
+
+alter table public.entry_items
+drop constraint if exists entry_items_item_type_check;
+
+alter table public.entry_items
+add constraint entry_items_item_type_check
+check (item_type in ('text', 'todo', 'planner', 'photo', 'drawing', 'sticker'));
 
 create index if not exists entries_user_date_idx on public.entries (user_id, entry_date desc);
 create index if not exists entry_items_entry_order_idx on public.entry_items (entry_id, order_index asc);

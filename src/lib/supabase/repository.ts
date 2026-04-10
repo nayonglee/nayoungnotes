@@ -2,6 +2,7 @@ import type { Session } from "@supabase/supabase-js";
 import {
   createBlankEntry,
   createDrawingSheet,
+  normalizeEntryRecord,
   recordToPersistenceItems,
   toEntryOverview,
   withSearchText
@@ -133,6 +134,20 @@ function mapRowsToRecord(entryRow: EntryRow, itemRows: EntryItemRow[]) {
           updatedAt: row.updated_at
         };
         break;
+      case "planner":
+        record.planner = {
+          id: row.id,
+          itemType: "planner",
+          orderIndex: row.order_index,
+          payload: {
+            blocks: Array.isArray(row.payload.blocks)
+              ? (row.payload.blocks as DiaryEntryRecord["planner"]["payload"]["blocks"])
+              : []
+          },
+          styleConfig: normalizeStyle(row),
+          updatedAt: row.updated_at
+        };
+        break;
       case "photo":
         record.photos.push({
           id: row.id,
@@ -176,7 +191,7 @@ function mapRowsToRecord(entryRow: EntryRow, itemRows: EntryItemRow[]) {
           ? (row.payload.sheets as DiaryEntryRecord["drawing"]["payload"]["sheets"]).map(
               (sheet, index) => ({
                 id: sheet.id || `${row.id}_sheet_${index + 1}`,
-                title: sheet.title || `시트 ${index + 1}`,
+                title: sheet.title || `Sheet ${index + 1}`,
                 background:
                   sheet.background === "plain" ||
                   sheet.background === "ruled" ||
@@ -188,7 +203,7 @@ function mapRowsToRecord(entryRow: EntryRow, itemRows: EntryItemRow[]) {
             )
           : [
               {
-                ...createDrawingSheet(0, legacyBackground, "시트 1"),
+                ...createDrawingSheet(0, legacyBackground, "Sheet 1"),
                 id: `${row.id}_sheet_1`,
                 strokes: legacyStrokes
               }
@@ -254,11 +269,11 @@ async function uploadPendingPhotos(viewer: Viewer, entryDate: string, photos: Ph
 }
 
 async function savePreviewModeEntry(viewer: Viewer, record: DiaryEntryRecord) {
-  const updatedRecord = withSearchText({
+  const updatedRecord = withSearchText(normalizeEntryRecord({
     ...record,
     updatedAt: new Date().toISOString(),
     userId: viewer.id
-  });
+  }, viewer));
   await savePreviewEntry(viewerKey(viewer), updatedRecord);
   return updatedRecord;
 }
@@ -292,18 +307,56 @@ export async function listEntries(viewer: Viewer, search = ""): Promise<EntryOve
 
   const { data, error } = await query;
   if (error) throw error;
+  const rows = (data ?? []) as EntryRow[];
+  if (rows.length === 0) return [];
 
-  return (data as EntryRow[]).map((row) =>
-    toEntryOverview({
-      ...createBlankEntry(row.entry_date, viewer),
-      id: row.id,
-      userId: row.user_id,
-      title: row.title ?? "",
-      mood: (row.mood ?? undefined) as DiaryEntryRecord["mood"],
-      themeConfig: row.theme_config ?? createBlankEntry(row.entry_date, viewer).themeConfig,
-      searchText: row.search_text ?? "",
-      createdAt: row.created_at,
-      updatedAt: row.updated_at
+  const entryIds = rows.map((row) => row.id);
+  const { data: itemData, error: itemError } = await supabase
+    .from("entry_items")
+    .select("entry_id,item_type,order_index,payload,style_config,id,updated_at")
+    .in("entry_id", entryIds)
+    .order("order_index", { ascending: true });
+
+  if (itemError) throw itemError;
+
+  const grouped = new Map<string, EntryItemRow[]>();
+  for (const item of (itemData ?? []) as EntryItemRow[]) {
+    const bucket = grouped.get(item.entry_id) ?? [];
+    bucket.push(item);
+    grouped.set(item.entry_id, bucket);
+  }
+
+  return Promise.all(
+    rows.map(async (row) => {
+      const itemRows = grouped.get(row.id) ?? [];
+      const textRow = itemRows.find((item) => item.item_type === "text");
+      const todoRow = itemRows.find((item) => item.item_type === "todo");
+      const plannerRow = itemRows.find((item) => item.item_type === "planner");
+      const photoRows = itemRows.filter((item) => item.item_type === "photo");
+
+      const todoItems = Array.isArray(todoRow?.payload.items)
+        ? (todoRow?.payload.items as DiaryEntryRecord["todo"]["payload"]["items"])
+        : [];
+      const plannerBlocks = Array.isArray(plannerRow?.payload.blocks)
+        ? (plannerRow?.payload.blocks as DiaryEntryRecord["planner"]["payload"]["blocks"])
+        : [];
+      const coverPhotoPath = photoRows.find((item) => typeof item.payload.path === "string")?.payload
+        .path as string | undefined;
+
+      return {
+        id: row.id,
+        entryDate: row.entry_date,
+        title: row.title ?? "Untitled page",
+        mood: (row.mood ?? undefined) as DiaryEntryRecord["mood"],
+        updatedAt: row.updated_at,
+        previewText: String(textRow?.payload.content ?? "").slice(0, 140),
+        photoCount: photoRows.length,
+        todoCount: todoItems.length,
+        completedTodoCount: todoItems.filter((item) => item.checked).length,
+        plannerCount: plannerBlocks.filter((item) => item.title?.trim() || item.note?.trim()).length,
+        coverPhotoUrl: coverPhotoPath ? await createSignedPhotoUrl(coverPhotoPath) : undefined,
+        themeConfig: row.theme_config ?? createBlankEntry(row.entry_date, viewer).themeConfig
+      } satisfies EntryOverview;
     })
   );
 }
@@ -311,7 +364,7 @@ export async function listEntries(viewer: Viewer, search = ""): Promise<EntryOve
 export async function loadEntryByDate(viewer: Viewer, entryDate: string) {
   if (viewer.mode === "preview" || !isSupabaseConfigured()) {
     const preview = await getPreviewEntry(viewerKey(viewer), entryDate);
-    return preview?.record ?? null;
+    return preview?.record ? normalizeEntryRecord(preview.record, viewer) : null;
   }
 
   const supabase = getSupabaseClient();
@@ -351,7 +404,7 @@ export async function saveEntry(viewer: Viewer, record: DiaryEntryRecord) {
     userId: viewer.id,
     photos: await uploadPendingPhotos(viewer, record.entryDate, record.photos)
   };
-  const normalized = withSearchText(withUploadedPhotos);
+  const normalized = withSearchText(normalizeEntryRecord(withUploadedPhotos, viewer));
   const items = recordToPersistenceItems(normalized);
 
   const { error } = await supabase.rpc("save_diary_entry", {

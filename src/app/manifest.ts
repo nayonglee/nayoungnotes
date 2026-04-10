@@ -4,7 +4,7 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "Nayoung Notes",
     short_name: "Nayoung Notes",
-    description: "한 사람을 위한 개인용 스크랩 다이어리",
+    description: "A private scrapbook diary for one person",
     start_url: "/archive",
     display: "standalone",
     background_color: "#fffafc",

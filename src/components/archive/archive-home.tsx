@@ -3,40 +3,30 @@
 import type { CSSProperties } from "react";
 import { startTransition, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { addMonths, format, parseISO, subMonths } from "date-fns";
-import { ko } from "date-fns/locale";
-import {
-  CalendarRange,
-  ChevronLeft,
-  ChevronRight,
-  Heart,
-  List,
-  Plus,
-  Sticker
-} from "lucide-react";
+import NextImage from "next/image";
+import { CalendarRange, ChevronLeft, ChevronRight, List, Plus } from "lucide-react";
+import { ScrapIcon, type ScrapIconKind } from "@/components/ui/scrap-icon";
 import { buildCalendarMatrix, todayKey } from "@/lib/date";
+import { getLocalAsset } from "@/lib/local/database";
 import { loadEntryOverviews } from "@/lib/local/sync";
 import { useAuthStore } from "@/store/auth-store";
 import type { EntryOverview, MoodKey, ThemePreset } from "@/types/diary";
 import styles from "@/styles/archive.module.css";
 
-const weekdayLabels = ["일", "월", "화", "수", "목", "금", "토"];
-const cardRotations = ["-3deg", "2deg", "-2deg", "3deg"];
+const weekdayLabels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const EMPTY_ENTRIES: EntryOverview[] = [];
 
-const moodStampMap: Record<MoodKey, { glyph: string; label: string }> = {
-  glowy: { glyph: "★", label: "반짝" },
-  calm: { glyph: "☁", label: "차분" },
-  proud: { glyph: "♡", label: "뿌듯" },
-  busy: { glyph: "✎", label: "분주" },
-  dreamy: { glyph: "✿", label: "몽글" },
-  gentle: { glyph: "◎", label: "가벼움" }
+const moodStampMap: Record<MoodKey, { label: string; icon: ScrapIconKind }> = {
+  glowy: { label: "Glow", icon: "spark" },
+  calm: { label: "Calm", icon: "flower" },
+  proud: { label: "Proud", icon: "heart" },
+  busy: { label: "Busy", icon: "ribbon" },
+  dreamy: { label: "Dreamy", icon: "swirl" },
+  gentle: { label: "Soft", icon: "star" }
 };
-
-function scrapbookTag(entry: EntryOverview) {
-  return entry.mood ? moodStampMap[entry.mood] : { glyph: "☆", label: "기록" };
-}
 
 function themeLabel(theme: ThemePreset) {
   if (theme === "mint") return "mint";
@@ -44,40 +34,75 @@ function themeLabel(theme: ThemePreset) {
   return "petal";
 }
 
-function ScrapPreviewCard({
+function useLocalAssetUrl(assetId?: string, remoteUrl?: string) {
+  const [assetUrl, setAssetUrl] = useState<string>();
+
+  useEffect(() => {
+    if (!assetId || remoteUrl) return;
+
+    let objectUrl: string | undefined;
+    void getLocalAsset(assetId).then((asset) => {
+      if (!asset) return;
+      objectUrl = URL.createObjectURL(asset.blob);
+      setAssetUrl(objectUrl);
+    });
+
+    return () => {
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
+    };
+  }, [assetId, remoteUrl]);
+
+  return remoteUrl ?? assetUrl;
+}
+
+function BoardTile({
   entry,
-  rotation,
   onOpen
 }: {
   entry: EntryOverview;
-  rotation: string;
   onOpen: (date: string) => void;
 }) {
-  const stamp = scrapbookTag(entry);
+  const coverUrl = useLocalAssetUrl(entry.coverPhotoLocalAssetId, entry.coverPhotoUrl);
+  const mood = entry.mood ? moodStampMap[entry.mood] : null;
 
   return (
     <button
       type="button"
-      className={styles.scrapCard}
+      className={styles.boardTile}
       data-theme={themeLabel(entry.themeConfig.preset)}
-      style={{ "--rotation": rotation } as CSSProperties}
       onClick={() => onOpen(entry.entryDate)}
     >
-      <div className={styles.scrapTape} />
-      <div className={styles.scrapHeader}>
-        <span className={styles.dateChip}>
-          {format(parseISO(entry.entryDate), "M월 d일", { locale: ko })}
-        </span>
-        <span className={styles.moodStamp}>
-          <span>{stamp.glyph}</span>
-          {stamp.label}
-        </span>
+      <div className={styles.tileTape} />
+      <div className={styles.tileMedia}>
+        {coverUrl ? (
+          <NextImage src={coverUrl} alt="" fill unoptimized className={styles.tileImage} />
+        ) : (
+          <div className={styles.tileArtwork}>
+            <ScrapIcon kind={entry.themeConfig.preset === "mint" ? "star" : "heart"} size={34} />
+            <ScrapIcon kind={entry.themeConfig.preset === "berry" ? "ribbon" : "swirl"} size={24} />
+            <ScrapIcon kind="flower" size={26} />
+          </div>
+        )}
+        <div className={styles.tileOverlay} />
       </div>
-      <strong>{entry.title}</strong>
-      <p>{entry.previewText || "짧은 메모가 이 카드에 같이 보여집니다."}</p>
-      <div className={styles.scrapFooter}>
-        <span>사진 {entry.photoCount}</span>
-        <span>할 일 {entry.todoCount}</span>
+
+      <div className={styles.tileBody}>
+        <div className={styles.tileTop}>
+          <span className={styles.tileDate}>{format(parseISO(entry.entryDate), "MMM d")}</span>
+          {mood ? (
+            <span className={styles.tileMood}>
+              <ScrapIcon kind={mood.icon} size={16} />
+              {mood.label}
+            </span>
+          ) : null}
+        </div>
+        <strong>{entry.title}</strong>
+        <p>{entry.previewText || "Open the page to add photos, plans, and handwritten notes."}</p>
+        <div className={styles.tileFooter}>
+          <span>{entry.photoCount} photos</span>
+          <span>{entry.todoCount} tasks</span>
+          <span>{entry.plannerCount} plans</span>
+        </div>
       </div>
     </button>
   );
@@ -102,14 +127,13 @@ export function ArchiveHome() {
     [entries]
   );
   const weeks = buildCalendarMatrix(anchorDate);
-  const recentEntries = entries.slice(0, 4);
-  const todayOverview = entriesByDate.get(todayDate);
+  const boardEntries = entries.slice(0, 12);
   const monthEntries = useMemo(
     () => entries.filter((entry) => entry.entryDate.startsWith(anchorDate.slice(0, 7))),
     [anchorDate, entries]
   );
-
   const monthPhotoCount = monthEntries.reduce((sum, entry) => sum + entry.photoCount, 0);
+  const monthPlanCount = monthEntries.reduce((sum, entry) => sum + entry.plannerCount, 0);
   const monthTodoDone = monthEntries.reduce((sum, entry) => sum + entry.completedTodoCount, 0);
   const monthTodoTotal = monthEntries.reduce((sum, entry) => sum + entry.todoCount, 0);
 
@@ -121,79 +145,44 @@ export function ArchiveHome() {
 
   return (
     <div className={styles.page}>
-      <section className={styles.heroRow}>
-        <article className={styles.todayCard}>
-          <div className={styles.todayTop}>
-            <span className={styles.sectionTag}>오늘</span>
-            <span className={styles.todayBadge}>
-              <Heart size={14} />
-              바로 쓰기
-            </span>
+      <section className={styles.boardSection}>
+        <div className={styles.boardHeader}>
+          <div>
+            <span className={styles.sectionTag}>board archive</span>
+            <h3>Start from the scrapbook board</h3>
+            <p>Recent pages land here first, like a diary board instead of a dashboard.</p>
           </div>
-
-          <h3>{todayOverview?.title || "오늘 페이지 만들기"}</h3>
-          <p>
-            {todayOverview?.previewText ||
-              "오늘 날짜 페이지를 열고 제목, 체크리스트, 본문, 사진, 손글씨를 바로 적을 수 있습니다."}
-          </p>
-
-          <div className={styles.quickMeta}>
-            <span>체크 {todayOverview?.todoCount ?? 0}</span>
-            <span>사진 {todayOverview?.photoCount ?? 0}</span>
-            <span>손글씨 보드 포함</span>
-          </div>
-
-          <button className={styles.primaryAction} onClick={() => openEntry(todayDate)}>
-            <Plus size={16} />
-            {todayOverview ? "오늘 이어쓰기" : "오늘 시작하기"}
-          </button>
-        </article>
-
-        <article className={styles.previewBoard}>
-          <div className={styles.previewHeader}>
-            <div>
-              <span className={styles.sectionTag}>보드</span>
-              <h3>최근 페이지 미리보기</h3>
-            </div>
-            <span className={styles.boardBadge}>
-              <Sticker size={14} />
-              스크랩
-            </span>
-          </div>
-
-          <div className={styles.statsRow}>
-            <span className={styles.statChip}>이번 달 페이지 {monthEntries.length}</span>
-            <span className={styles.statChip}>사진 {monthPhotoCount}</span>
+          <div className={styles.boardStats}>
+            <span className={styles.statChip}>{monthEntries.length} pages</span>
+            <span className={styles.statChip}>{monthPhotoCount} photos</span>
+            <span className={styles.statChip}>{monthPlanCount} plans</span>
             <span className={styles.statChip}>
-              체크 완료 {monthTodoDone}/{monthTodoTotal || 0}
+              {monthTodoDone}/{monthTodoTotal || 0} done
             </span>
           </div>
+        </div>
 
-          {recentEntries.length > 0 ? (
-            <div className={styles.scrapGrid}>
-              {recentEntries.map((entry, index) => (
-                <ScrapPreviewCard
-                  key={entry.entryDate}
-                  entry={entry}
-                  rotation={cardRotations[index % cardRotations.length]}
-                  onOpen={openEntry}
-                />
-              ))}
+        <div className={styles.boardGrid}>
+          <button type="button" className={styles.newTile} onClick={() => openEntry(todayDate)}>
+            <span className={styles.newBadge}>Today</span>
+            <div className={styles.newIcon}>
+              <Plus size={22} />
             </div>
-          ) : (
-            <div className={styles.emptyBoard}>
-              <strong>첫 페이지를 만들어 보세요.</strong>
-              <p>기록이 쌓이면 이 보드에 종이 조각처럼 최근 페이지가 정리됩니다.</p>
-            </div>
-          )}
-        </article>
+            <strong>Create or continue today&apos;s page</strong>
+            <p>Open the daily spread with checklist, time blocks, photos, handwriting, and journal space.</p>
+          </button>
+
+          {boardEntries.map((entry) => (
+            <BoardTile key={entry.entryDate} entry={entry} onOpen={openEntry} />
+          ))}
+        </div>
       </section>
 
       <section className={styles.archiveCard}>
         <div className={styles.cardHeader}>
           <div>
-            <span className={styles.sectionTag}>보관함</span>
-            <h3>{format(parseISO(anchorDate), "yyyy년 M월", { locale: ko })}</h3>
+            <span className={styles.sectionTag}>month archive</span>
+            <h3>{format(parseISO(anchorDate), "MMMM yyyy")}</h3>
           </div>
 
           <div className={styles.controls}>
@@ -201,7 +190,7 @@ export function ArchiveHome() {
               type="button"
               className={styles.iconButton}
               onClick={() => setAnchorDate(format(subMonths(parseISO(anchorDate), 1), "yyyy-MM-dd"))}
-              aria-label="이전 달"
+              aria-label="Previous month"
             >
               <ChevronLeft size={16} />
             </button>
@@ -209,7 +198,7 @@ export function ArchiveHome() {
               type="button"
               className={styles.iconButton}
               onClick={() => setAnchorDate(format(addMonths(parseISO(anchorDate), 1), "yyyy-MM-dd"))}
-              aria-label="다음 달"
+              aria-label="Next month"
             >
               <ChevronRight size={16} />
             </button>
@@ -219,7 +208,7 @@ export function ArchiveHome() {
               onClick={() => setViewMode("calendar")}
             >
               <CalendarRange size={16} />
-              달력
+              Calendar
             </button>
             <button
               type="button"
@@ -227,7 +216,7 @@ export function ArchiveHome() {
               onClick={() => setViewMode("list")}
             >
               <List size={16} />
-              리스트
+              List
             </button>
           </div>
         </div>
@@ -242,7 +231,7 @@ export function ArchiveHome() {
 
             {weeks.flat().map((day) => {
               const entry = entriesByDate.get(day.date);
-              const stamp = entry ? scrapbookTag(entry) : null;
+              const mood = entry?.mood ? moodStampMap[entry.mood] : null;
 
               return (
                 <button
@@ -255,18 +244,22 @@ export function ArchiveHome() {
                 >
                   <div className={styles.dayTop}>
                     <span className={styles.dayNumber}>{day.dayOfMonth}</span>
-                    {stamp ? <span className={styles.dayMood}>{stamp.glyph}</span> : null}
+                    {mood ? (
+                      <span className={styles.dayMood}>
+                        <ScrapIcon kind={mood.icon} size={14} />
+                      </span>
+                    ) : null}
                   </div>
 
                   {entry ? (
                     <>
                       <strong>{entry.title}</strong>
                       <small>
-                        사진 {entry.photoCount} · 할 일 {entry.todoCount}
+                        {entry.photoCount} photos · {entry.plannerCount} plans
                       </small>
                     </>
                   ) : (
-                    <small>새 페이지</small>
+                    <small>New page</small>
                   )}
                 </button>
               );
@@ -274,19 +267,20 @@ export function ArchiveHome() {
           </div>
         ) : (
           <div className={styles.listView}>
-            {entries.map((entry) => (
+            {entries.map((entry, index) => (
               <button
                 key={entry.entryDate}
                 className={styles.entryRow}
+                style={{ "--row-rotation": `${index % 2 === 0 ? -0.6 : 0.6}deg` } as CSSProperties}
                 onClick={() => openEntry(entry.entryDate)}
               >
                 <div>
-                  <strong>{format(parseISO(entry.entryDate), "M월 d일 EEEE", { locale: ko })}</strong>
+                  <strong>{format(parseISO(entry.entryDate), "EEEE, MMM d")}</strong>
                   <p>{entry.title}</p>
                 </div>
                 <div className={styles.rowMeta}>
-                  <span>{scrapbookTag(entry).label}</span>
-                  <span>사진 {entry.photoCount}</span>
+                  <span>{entry.plannerCount} plans</span>
+                  <span>{entry.photoCount} photos</span>
                 </div>
               </button>
             ))}

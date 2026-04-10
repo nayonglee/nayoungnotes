@@ -58,13 +58,13 @@ export function TodoEditor({
             value={item.text}
             onChange={(event) => updateItem(item.id, { text: event.target.value })}
             onKeyDown={(event) => handleKeyDown(event, index, item)}
-            placeholder="해야 할 일 적기"
+            placeholder="Write a task"
           />
           <button
             type="button"
             className={styles.iconAction}
             onClick={() => removeItem(item.id)}
-            aria-label="할 일 삭제"
+            aria-label="Remove task"
           >
             <Trash2 size={15} />
           </button>
@@ -73,7 +73,7 @@ export function TodoEditor({
 
       <button type="button" className={styles.addButton} onClick={() => onChange([...safeItems, createTodoCard()])}>
         <CirclePlus size={16} />
-        항목 추가
+        Add task
       </button>
     </div>
   );

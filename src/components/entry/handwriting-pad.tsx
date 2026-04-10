@@ -45,7 +45,7 @@ const toolMeta: Record<
   }
 > = {
   fine: {
-    label: "파인펜",
+    label: "Fine pen",
     icon: PencilLine,
     drawTool: "pen",
     defaultWidth: 1.6,
@@ -53,7 +53,7 @@ const toolMeta: Record<
     widths: [1.2, 1.6, 2.2]
   },
   gel: {
-    label: "젤펜",
+    label: "Gel pen",
     icon: PenLine,
     drawTool: "pen",
     defaultWidth: 2.8,
@@ -61,7 +61,7 @@ const toolMeta: Record<
     widths: [2.2, 2.8, 3.8]
   },
   marker: {
-    label: "형광펜",
+    label: "Highlighter",
     icon: Highlighter,
     drawTool: "highlighter",
     defaultWidth: 6,
@@ -69,7 +69,7 @@ const toolMeta: Record<
     widths: [4.5, 6, 8.5]
   },
   eraser: {
-    label: "지우개",
+    label: "Eraser",
     icon: Eraser,
     drawTool: "eraser",
     defaultWidth: 18,
@@ -84,22 +84,22 @@ const penPresets: Array<{
   tool: Exclude<ToolMode, "eraser">;
   color: string;
 }> = [
-  { id: "ink", label: "잉크", tool: "fine", color: "#43383d" },
-  { id: "pink-gel", label: "핑크 젤", tool: "gel", color: "#e49cbc" },
-  { id: "mint-marker", label: "민트 마커", tool: "marker", color: "#b9cf84" },
-  { id: "blue-pen", label: "블루 펜", tool: "gel", color: "#8eb7e8" }
+  { id: "ink", label: "Ink", tool: "fine", color: "#43383d" },
+  { id: "pink-gel", label: "Pink gel", tool: "gel", color: "#e49cbc" },
+  { id: "mint-marker", label: "Mint marker", tool: "marker", color: "#b9cf84" },
+  { id: "blue-pen", label: "Blue pen", tool: "gel", color: "#8eb7e8" }
 ];
 
 const backgrounds: Array<{ id: DrawingBackground; label: string }> = [
-  { id: "plain", label: "무지" },
-  { id: "ruled", label: "라인" },
-  { id: "dot", label: "도트" }
+  { id: "plain", label: "Plain" },
+  { id: "ruled", label: "Ruled" },
+  { id: "dot", label: "Dot" }
 ];
 
 function normalizeSheets(drawing: DrawingItem) {
   const fallbackSheet: DrawingSheet = {
     id: drawing.payload.activeSheetId || `${drawing.id}_sheet_1`,
-    title: "시트 1",
+    title: "Sheet 1",
     background: "dot",
     strokes: []
   };
@@ -336,7 +336,7 @@ export function HandwritingPad({
   };
 
   const addSheet = () => {
-    const nextSheet = createDrawingSheet(sheets.length, background, `시트 ${sheets.length + 1}`);
+    const nextSheet = createDrawingSheet(sheets.length, background, `Sheet ${sheets.length + 1}`);
     resetSheetSession();
     commitSheets([...sheets, nextSheet], nextSheet.id);
   };
@@ -379,20 +379,20 @@ export function HandwritingPad({
                   commitSheets(sheets, sheet.id);
                 }}
               >
-                <span>{sheet.title || `시트 ${index + 1}`}</span>
+                <span>{sheet.title || `Sheet ${index + 1}`}</span>
                 <small>
                   {sheet.background === "plain"
-                    ? "무지"
+                    ? "Plain"
                     : sheet.background === "ruled"
-                      ? "라인"
-                      : "도트"}
+                      ? "Ruled"
+                      : "Dot"}
                 </small>
               </button>
             ))}
           </div>
 
           <div className={styles.sheetActions}>
-            <button type="button" className={styles.iconAction} onClick={addSheet} aria-label="새 시트">
+            <button type="button" className={styles.iconAction} onClick={addSheet} aria-label="Add sheet">
               <Plus size={15} />
             </button>
             <button
@@ -400,7 +400,7 @@ export function HandwritingPad({
               className={styles.iconAction}
               onClick={removeSheet}
               disabled={sheets.length <= 1}
-              aria-label="현재 시트 삭제"
+              aria-label="Remove active sheet"
             >
               <X size={15} />
             </button>
@@ -455,7 +455,7 @@ export function HandwritingPad({
                 setColor(swatch);
                 setActivePreset("");
               }}
-              aria-label={`색상 ${swatch}`}
+              aria-label={`Color ${swatch}`}
             />
           ))}
         </div>
@@ -499,14 +499,14 @@ export function HandwritingPad({
               className={inputPolicy === "stylus" ? styles.policyActive : styles.policyChip}
               onClick={() => setInputPolicy("stylus")}
             >
-              펜 우선
+              Pen first
             </button>
             <button
               type="button"
               className={inputPolicy === "all" ? styles.policyActive : styles.policyChip}
               onClick={() => setInputPolicy("all")}
             >
-              손가락 허용
+              Finger draw
             </button>
           </div>
 
@@ -517,7 +517,7 @@ export function HandwritingPad({
               onClick={() => setInteractionMode("draw")}
             >
               <PenLine size={15} />
-              그리기
+              Draw
             </button>
             <button
               type="button"
@@ -525,7 +525,7 @@ export function HandwritingPad({
               onClick={() => setInteractionMode("pan")}
             >
               <Move size={15} />
-              이동
+              Pan
             </button>
           </div>
 
@@ -545,7 +545,7 @@ export function HandwritingPad({
                 setZoom(1);
               }}
             >
-              초기화
+              Reset
             </button>
           </div>
         </div>
@@ -593,8 +593,8 @@ export function HandwritingPad({
         </div>
         <div className={styles.canvasHint}>
           {inputPolicy === "stylus"
-            ? "손가락은 이동, 펜은 그리기용으로 우선 처리됩니다."
-            : "손가락과 펜 모두 그리기에 사용할 수 있습니다."}
+            ? "Touch pans the page first, while the pen keeps drawing."
+            : "Both touch and pen can draw on the page."}
         </div>
       </div>
     </div>

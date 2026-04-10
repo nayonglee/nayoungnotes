@@ -15,9 +15,10 @@ import {
   Trash2,
   X
 } from "lucide-react";
+import { ScrapIcon, type ScrapIconKind } from "@/components/ui/scrap-icon";
 import { createPhotoDraftItem, createStickerDraftItem, cyclePresetRotation } from "@/lib/entry";
 import { getLocalAsset, putLocalAsset } from "@/lib/local/database";
-import { stickerPresets } from "@/lib/theme";
+import { stickerMotif, stickerPresets } from "@/lib/theme";
 import { clamp, createId } from "@/lib/utils";
 import type { PhotoItem, StickerItem } from "@/types/diary";
 import styles from "@/styles/entry.module.css";
@@ -29,10 +30,10 @@ const layoutPresets: Array<{
   label: string;
   icon: typeof Sparkles;
 }> = [
-  { id: "scatter", label: "흩뿌리기", icon: Sparkles },
-  { id: "grid", label: "정리형", icon: Grid2X2 },
-  { id: "stack", label: "겹치기", icon: Layers3 },
-  { id: "strip", label: "필름줄", icon: Sticker }
+  { id: "scatter", label: "Scatter", icon: Sparkles },
+  { id: "grid", label: "Grid", icon: Grid2X2 },
+  { id: "stack", label: "Stack", icon: Layers3 },
+  { id: "strip", label: "Strip", icon: Sticker }
 ];
 
 async function measureImage(file: File) {
@@ -69,21 +70,8 @@ function useLocalAssetUrl(assetId?: string, remoteUrl?: string) {
   return remoteUrl ?? assetUrl;
 }
 
-function stickerGlyph(stickerId: string) {
-  switch (stickerId) {
-    case "starry":
-      return "✦";
-    case "strawberry":
-      return "♡";
-    case "flower":
-      return "✿";
-    case "ribbon":
-      return "❀";
-    case "mushroom":
-      return "◌";
-    default:
-      return "◎";
-  }
+function stickerKind(stickerId: string): ScrapIconKind {
+  return stickerMotif(stickerId) as ScrapIconKind;
 }
 
 function PhotoCard({
@@ -136,7 +124,7 @@ function PhotoCard({
         className={styles.photoCaption}
         value={photo.payload.caption}
         onChange={(event) => onCaptionChange(photo.id, event.target.value)}
-        placeholder="짧은 메모"
+        placeholder="Add a caption"
       />
     </article>
   );
@@ -161,7 +149,7 @@ function StickerCard({
         zIndex: sticker.styleConfig.zIndex,
         background: sticker.payload.tint
       }}
-    >
+      >
       <div className={styles.stickerToolbar}>
         <button
           type="button"
@@ -177,7 +165,9 @@ function StickerCard({
           <X size={14} />
         </button>
       </div>
-      <span>{stickerGlyph(sticker.payload.stickerId)}</span>
+      <span className={styles.stickerMotif}>
+        <ScrapIcon kind={stickerKind(sticker.payload.stickerId)} size={28} />
+      </span>
       <strong>{sticker.payload.label}</strong>
     </article>
   );
@@ -388,7 +378,7 @@ export function PhotoBoard({
         <div className={styles.boardToolbarMain}>
           <button type="button" className={styles.primaryButton} onClick={() => inputRef.current?.click()}>
             <ImagePlus size={16} />
-            사진 올리기
+            Add photos
           </button>
 
           <div className={styles.layoutRow}>
@@ -429,7 +419,9 @@ export function PhotoBoard({
                 ])
               }
             >
-              <span>{stickerGlyph(sticker.id)}</span>
+              <span className={styles.stickerPickerIcon}>
+                <ScrapIcon kind={stickerKind(sticker.id)} size={18} />
+              </span>
               {sticker.label}
             </button>
           ))}
@@ -439,8 +431,8 @@ export function PhotoBoard({
 
       <div className={styles.photoBoard} ref={boardRef}>
         <div className={styles.boardPinNote}>
-          <strong>사진 보드</strong>
-          <p>먼저 템플릿으로 정리하고, 필요한 카드만 살짝 움직여서 마감하면 됩니다.</p>
+          <strong>Scrap board</strong>
+          <p>Start with a layout preset, then nudge only the cards you want to fine-tune.</p>
         </div>
 
         {photos.map((photo) => (
@@ -500,8 +492,8 @@ export function PhotoBoard({
 
         {photos.length === 0 && stickers.length === 0 ? (
           <div className={styles.boardEmpty}>
-            <strong>메모리 보드</strong>
-            <p>사진을 올리거나 별, 하트, 리본 스티커를 붙여서 오늘 페이지를 정리해 보세요.</p>
+            <strong>Start your board</strong>
+            <p>Drop in photos, then layer hearts, stars, ribbons, and notes on top.</p>
           </div>
         ) : null}
       </div>

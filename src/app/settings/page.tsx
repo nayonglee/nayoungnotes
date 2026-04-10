@@ -3,7 +3,7 @@ import { SettingsScreen } from "@/components/settings/settings-screen";
 
 export default function SettingsPage() {
   return (
-    <AppShell title="설정" subtitle="계정 상태, PIN 잠금, 내보내기/가져오기">
+    <AppShell title="Settings" subtitle="Account, PIN lock, and export or import tools">
       <SettingsScreen />
     </AppShell>
   );

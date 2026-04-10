@@ -18,7 +18,7 @@ export type ThemePreset = "petal" | "mint" | "berry";
 export type TexturePreset = "paper" | "dot" | "ruled";
 export type BoardTone = "cream" | "mint" | "blush";
 export type PresetRotation = -5 | 0 | 5;
-export type EntryItemType = "text" | "todo" | "photo" | "drawing" | "sticker";
+export type EntryItemType = "text" | "todo" | "planner" | "photo" | "drawing" | "sticker";
 export type SaveState = "saved" | "syncing" | "offline-draft" | "error" | "idle";
 
 export interface ThemeConfig {
@@ -46,6 +46,18 @@ export interface TodoCard {
 
 export interface TodoPayload {
   items: TodoCard[];
+}
+
+export interface PlannerBlock {
+  id: string;
+  start: string;
+  end: string;
+  title: string;
+  note: string;
+}
+
+export interface PlannerPayload {
+  blocks: PlannerBlock[];
 }
 
 export interface PhotoPayload {
@@ -99,6 +111,7 @@ export interface BaseEntryItem<TPayload> {
 
 export type TextItem = BaseEntryItem<TextPayload> & { itemType: "text" };
 export type TodoItem = BaseEntryItem<TodoPayload> & { itemType: "todo" };
+export type PlannerItem = BaseEntryItem<PlannerPayload> & { itemType: "planner" };
 export type PhotoItem = BaseEntryItem<PhotoPayload> & { itemType: "photo" };
 export type StickerItem = BaseEntryItem<StickerPayload> & { itemType: "sticker" };
 export type DrawingItem = BaseEntryItem<DrawingPayload> & { itemType: "drawing" };
@@ -115,6 +128,7 @@ export interface DiaryEntryRecord {
   updatedAt: string;
   text: TextItem;
   todo: TodoItem;
+  planner: PlannerItem;
   photos: PhotoItem[];
   stickers: StickerItem[];
   drawing: DrawingItem;
@@ -130,6 +144,9 @@ export interface EntryOverview {
   photoCount: number;
   todoCount: number;
   completedTodoCount: number;
+  plannerCount: number;
+  coverPhotoUrl?: string;
+  coverPhotoLocalAssetId?: string;
   themeConfig: ThemeConfig;
 }
 

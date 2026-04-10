@@ -12,6 +12,7 @@ import {
   Mail,
   Star
 } from "lucide-react";
+import { ScrapIcon } from "@/components/ui/scrap-icon";
 import {
   savePreviewViewer,
   signInWithMagicLink,
@@ -65,13 +66,13 @@ export function LandingScreen() {
         await signInWithPassword(email, password);
       } else if (mode === "signup") {
         await signUpWithPassword(email, password);
-        setMessage("가입이 완료됐습니다. 이메일 인증을 켠 경우 메일 확인 후 로그인해 주세요.");
+        setMessage("Your account was created. If email confirmation is enabled, confirm it first and then sign in.");
       } else {
         await signInWithMagicLink(email);
-        setMessage("로그인 링크를 보냈습니다. 받은 편지함에서 확인해 주세요.");
+        setMessage("A sign-in link was sent to your inbox.");
       }
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "로그인 중 문제가 생겼습니다.");
+      setMessage(error instanceof Error ? error.message : "Something went wrong while signing in.");
     } finally {
       setBusy(false);
     }
@@ -92,7 +93,7 @@ export function LandingScreen() {
 
   const saveRuntimeConfig = () => {
     if (!runtimeUrl.trim() || !runtimeAnonKey.trim()) {
-      setMessage("Supabase URL과 anon key를 모두 입력해 주세요.");
+      setMessage("Please enter both the Supabase URL and anon key.");
       return;
     }
 
@@ -101,7 +102,7 @@ export function LandingScreen() {
       anonKey: runtimeAnonKey.trim(),
       bucket: runtimeBucket.trim() || "diary-photos"
     });
-    setMessage("이 기기에 Supabase 연결 정보를 저장했습니다. 이제 계정 로그인을 사용할 수 있습니다.");
+    setMessage("Supabase connection details were saved on this device. Account sign-in is ready now.");
   };
 
   const clearRuntimeConfig = () => {
@@ -109,7 +110,7 @@ export function LandingScreen() {
     setRuntimeUrl("");
     setRuntimeAnonKey("");
     setRuntimeBucket("diary-photos");
-    setMessage("기기에 저장된 Supabase 연결 정보를 지웠습니다.");
+    setMessage("The stored Supabase connection for this device was removed.");
   };
 
   return (
@@ -119,26 +120,30 @@ export function LandingScreen() {
           <span className={styles.brandPill}>Nayoung Notes</span>
           <span className={styles.syncPill}>
             {configured ? <Cloud size={15} /> : <CloudOff size={15} />}
-            {configured ? "클라우드 연동 가능" : "연동 준비 필요"}
+            {configured ? "Cloud ready" : "Setup needed"}
           </span>
         </div>
 
         <div className={styles.coverBody}>
           <div className={styles.coverSpine}>
-            <span className={styles.spineCharm}>◎</span>
+            <span className={styles.spineCharm}>
+              <ScrapIcon kind="swirl" size={22} />
+            </span>
             <span className={styles.spineText}>diary</span>
-            <span className={styles.spineCharm}>★</span>
+            <span className={styles.spineCharm}>
+              <ScrapIcon kind="star" size={22} />
+            </span>
           </div>
 
           <div className={styles.coverSheet}>
             <div className={styles.coverDecor}>
               <span className={styles.decorBadge}>
                 <Star size={14} />
-                star tab
+                star tabs
               </span>
               <span className={styles.decorBadge}>
                 <Heart size={14} />
-                heart memo
+                heart labels
               </span>
               <span className={styles.decorBadge}>
                 <LockKeyhole size={14} />
@@ -146,32 +151,32 @@ export function LandingScreen() {
               </span>
             </div>
 
-            <h1>한 사람용 스크랩 다이어리</h1>
+            <h1>Private scrapbook diary</h1>
             <p>
-              날짜별 페이지는 정돈되어 있고, 사진·스티커·손글씨는 조금 더 자유롭게 둘 수 있게
-              구성했습니다. 너무 플랫폼 같지 않고, 너무 복잡하지 않게 정리한 버전입니다.
+              Daily pages stay structured, while photos, stickers, handwriting, and plans can still feel playful.
+              It is meant to feel like a diary board, not a team dashboard.
             </p>
 
             <div className={styles.motifRow}>
-              <span>★</span>
-              <span>♡</span>
-              <span>◎</span>
-              <span>✿</span>
-              <span>✦</span>
+              <span><ScrapIcon kind="star" size={22} /></span>
+              <span><ScrapIcon kind="heart" size={22} /></span>
+              <span><ScrapIcon kind="swirl" size={22} /></span>
+              <span><ScrapIcon kind="flower" size={22} /></span>
+              <span><ScrapIcon kind="ribbon" size={22} /></span>
             </div>
 
             <div className={styles.memoGrid}>
               <article className={styles.memoCard}>
-                <strong>기록</strong>
-                <p>제목, 기분, 체크리스트, 일기 본문을 바로 적을 수 있습니다.</p>
+                <strong>Write</strong>
+                <p>Start with a title, mood, checklist, time plan, and journal text.</p>
               </article>
               <article className={styles.memoCard}>
-                <strong>꾸미기</strong>
-                <p>사진, 스티커, 손글씨는 보드 안에서만 부드럽게 움직일 수 있습니다.</p>
+                <strong>Decorate</strong>
+                <p>Photos, stickers, and handwriting stay flexible inside a contained scrapbook board.</p>
               </article>
               <article className={styles.memoCard}>
-                <strong>동기화</strong>
-                <p>Supabase를 연결하면 여러 기기에서 같은 계정으로 이어서 쓸 수 있습니다.</p>
+                <strong>Sync</strong>
+                <p>Connect Supabase to continue the same diary across your laptop, tablet, and phone.</p>
               </article>
             </div>
           </div>
@@ -182,9 +187,9 @@ export function LandingScreen() {
         <div className={styles.panelHeader}>
           <div>
             <span className={styles.sectionPill}>account</span>
-            <h2>계정 연결</h2>
+            <h2>Account</h2>
           </div>
-          <p>동기화용 계정과 기기 내 PIN 잠금은 서로 별개입니다.</p>
+          <p>Your sync account and your device PIN are two separate things.</p>
         </div>
 
         <div className={styles.tabRow}>
@@ -193,27 +198,27 @@ export function LandingScreen() {
             className={mode === "signin" ? styles.activeTab : styles.tab}
             onClick={() => setMode("signin")}
           >
-            로그인
+            Sign in
           </button>
           <button
             type="button"
             className={mode === "signup" ? styles.activeTab : styles.tab}
             onClick={() => setMode("signup")}
           >
-            가입
+            Create account
           </button>
           <button
             type="button"
             className={mode === "magic" ? styles.activeTab : styles.tab}
             onClick={() => setMode("magic")}
           >
-            이메일 링크
+            Magic link
           </button>
         </div>
 
         <form className={styles.authForm} onSubmit={handleSubmit}>
           <label>
-            이메일
+            Email
             <input
               type="email"
               value={email}
@@ -225,12 +230,12 @@ export function LandingScreen() {
 
           {mode !== "magic" ? (
             <label>
-              비밀번호
+              Password
               <input
                 type="password"
                 value={password}
                 onChange={(event) => setPassword(event.target.value)}
-                placeholder="6자 이상"
+                placeholder="At least 6 characters"
                 required
                 minLength={6}
               />
@@ -240,10 +245,10 @@ export function LandingScreen() {
           <button type="submit" className={styles.primaryAction} disabled={busy || !configured}>
             <span>
               {mode === "signin"
-                ? "계정으로 시작"
+                ? "Continue with account"
                 : mode === "signup"
-                  ? "새 계정 만들기"
-                  : "로그인 링크 보내기"}
+                  ? "Create new account"
+                  : "Send sign-in link"}
             </span>
             <ArrowRight size={16} />
           </button>
@@ -253,11 +258,10 @@ export function LandingScreen() {
           <div className={styles.setupCard}>
             <div className={styles.setupTitle}>
               <CloudOff size={16} />
-              <strong>지금은 로컬 미리보기 상태입니다</strong>
+              <strong>You are in local preview mode</strong>
             </div>
             <p>
-              `.env.local`로 빌드할 수도 있고, 아래에 Supabase URL과 anon key를 넣어서 이 기기에서
-              바로 연결할 수도 있습니다.
+              You can build with `.env.local`, or paste the Supabase URL and anon key below to connect directly on this device.
             </p>
             <div className={styles.setupForm}>
               <label className={styles.setupField}>
@@ -287,10 +291,10 @@ export function LandingScreen() {
             </div>
             <div className={styles.setupActions}>
               <button type="button" className={styles.primaryAction} onClick={saveRuntimeConfig}>
-                이 기기에 저장
+                Save on this device
               </button>
               <button type="button" className={styles.secondaryAction} onClick={clearRuntimeConfig}>
-                입력값 지우기
+                Clear values
               </button>
             </div>
           </div>
@@ -298,15 +302,15 @@ export function LandingScreen() {
           <div className={styles.setupCard}>
             <div className={styles.setupTitle}>
               <Cloud size={16} />
-              <strong>클라우드 연동 준비 완료</strong>
+              <strong>Cloud sync is ready</strong>
             </div>
-            <p>비밀번호 로그인이나 이메일 링크 로그인으로 바로 들어갈 수 있습니다.</p>
+            <p>You can sign in with a password or use an email magic link.</p>
           </div>
         )}
 
         <button type="button" className={styles.secondaryAction} onClick={openPreview}>
           <Mail size={15} />
-          로컬 미리보기 열기
+          Open local preview
         </button>
 
         {message ? <p className={styles.message}>{message}</p> : null}

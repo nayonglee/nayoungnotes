@@ -1,4 +1,4 @@
-import { createBlankEntry, toEntryOverview } from "@/lib/entry";
+import { createBlankEntry, normalizeEntryRecord, toEntryOverview } from "@/lib/entry";
 import {
   buildDraftKey,
   deleteDraftRecord,
@@ -19,25 +19,26 @@ export async function loadEntryRecord(viewer: Viewer, entryDate: string) {
 
   try {
     const remote = await loadEntryByDate(viewer, entryDate);
-    if (draft?.dirty) return draft.record;
+    if (draft?.dirty) return normalizeEntryRecord(draft.record, viewer);
 
     if (remote) {
+      const normalizedRemote = normalizeEntryRecord(remote, viewer);
       await putDraftRecord({
         key: buildDraftKey(userKey, entryDate),
         userKey,
         entryDate,
-        record: remote,
+        record: normalizedRemote,
         dirty: false,
-        serverUpdatedAt: remote.updatedAt,
-        updatedAt: remote.updatedAt
+        serverUpdatedAt: normalizedRemote.updatedAt,
+        updatedAt: normalizedRemote.updatedAt
       });
-      return remote;
+      return normalizedRemote;
     }
   } catch {
-    if (draft?.record) return draft.record;
+    if (draft?.record) return normalizeEntryRecord(draft.record, viewer);
   }
 
-  if (draft?.record) return draft.record;
+  if (draft?.record) return normalizeEntryRecord(draft.record, viewer);
   return createBlankEntry(entryDate, viewer);
 }
 
@@ -56,7 +57,7 @@ export async function loadEntryOverviews(viewer: Viewer, search = ""): Promise<E
 
   if (localDrafts.status === "fulfilled") {
     for (const draft of localDrafts.value) {
-      const overview = toEntryOverview(draft.record);
+      const overview = toEntryOverview(normalizeEntryRecord(draft.record, viewer));
       if (!search.trim()) {
         merged.set(overview.entryDate, overview);
         continue;
@@ -72,14 +73,15 @@ export async function loadEntryOverviews(viewer: Viewer, search = ""): Promise<E
 export async function persistDraft(viewer: Viewer, record: DiaryEntryRecord, dirty = true) {
   const userKey = viewerKey(viewer);
   const existing = await getDraftRecord(userKey, record.entryDate);
+  const normalized = normalizeEntryRecord(record, viewer);
 
   await putDraftRecord({
     key: buildDraftKey(userKey, record.entryDate),
     userKey,
     entryDate: record.entryDate,
-    record,
+    record: normalized,
     dirty,
-    serverUpdatedAt: existing?.serverUpdatedAt ?? record.updatedAt,
+    serverUpdatedAt: existing?.serverUpdatedAt ?? normalized.updatedAt,
     updatedAt: new Date().toISOString()
   });
 }

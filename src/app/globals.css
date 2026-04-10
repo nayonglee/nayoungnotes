@@ -28,7 +28,12 @@ body {
   min-height: 100vh;
   margin: 0;
   color: var(--ink);
-  font-family: "Quicksand", "Apple SD Gothic Neo", "Malgun Gothic", "Trebuchet MS", sans-serif;
+  font-family:
+    "Avenir Next",
+    "Segoe UI",
+    "Apple SD Gothic Neo",
+    "Helvetica Neue",
+    sans-serif;
   background:
     radial-gradient(circle at 10% 6%, rgba(255, 219, 235, 0.85), transparent 20%),
     radial-gradient(circle at 92% 10%, rgba(228, 244, 212, 0.9), transparent 17%),

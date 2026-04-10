@@ -29,7 +29,7 @@ export function SettingsScreen() {
 
   const handlePinSave = async () => {
     if (pinValue.length !== 4 || pinValue !== confirmPin) {
-      setMessage("PIN은 4자리여야 하고 두 칸이 같아야 합니다.");
+      setMessage("The PIN must be 4 digits and both fields need to match.");
       return;
     }
 
@@ -39,7 +39,7 @@ export function SettingsScreen() {
     setPreferences({ ...preferences, enabled: true });
     setPinValue("");
     setConfirmPin("");
-    setMessage("이 기기에서 PIN 잠금이 켜졌습니다.");
+    setMessage("PIN lock is now enabled on this device.");
   };
 
   const handleExport = async () => {
@@ -74,7 +74,7 @@ export function SettingsScreen() {
 
     await flushPendingQueue(viewer);
     await queryClient.invalidateQueries();
-    setMessage("가져오기를 완료했습니다. 온라인이면 바로 동기화되고, 아니면 기기에 임시 저장됩니다.");
+    setMessage("Import finished. If you are online it will sync now, otherwise it will stay queued on this device.");
     event.target.value = "";
   };
 
@@ -91,20 +91,20 @@ export function SettingsScreen() {
         <div className={styles.cardHeader}>
           {configured ? <Cloud size={18} /> : <CloudOff size={18} />}
           <div>
-            <strong>클라우드 연동 상태</strong>
+            <strong>Cloud connection</strong>
             <p>
               {configured
                 ? viewer?.mode === "supabase"
-                  ? `현재 ${viewer.email ?? "계정"} 으로 연결되어 있습니다.`
-                  : "Supabase는 연결 가능하지만 지금은 로컬 미리보기로 열려 있습니다."
-                : "Supabase 환경 변수가 아직 없어서 로컬 미리보기 모드만 가능합니다."}
+                  ? `Signed in as ${viewer.email ?? "your account"}.`
+                  : "Supabase is ready, but this app is currently open in local preview mode."
+                : "Supabase is not configured yet, so only local preview mode is available."}
             </p>
           </div>
         </div>
         {!configured ? (
           <p className={styles.message}>
-            `.env.local`에 `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`를 넣고
-            `supabase/schema.sql`을 적용하면 실제 계정 연동이 켜집니다.
+            Add `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` to `.env.local`,
+            then run the updated `supabase/schema.sql` to enable real account sync.
           </p>
         ) : null}
       </section>
@@ -113,21 +113,21 @@ export function SettingsScreen() {
         <div className={styles.cardHeader}>
           <LockKeyhole size={18} />
           <div>
-            <strong>기기 PIN 잠금</strong>
-            <p>이 설정은 이 기기에서만 동작합니다. 계정과는 별개입니다.</p>
+            <strong>Device PIN lock</strong>
+            <p>This setting only applies to this device and stays separate from your account.</p>
           </div>
         </div>
 
         {hasPin ? (
           <>
             <div className={styles.toggleRow}>
-              <span>PIN 잠금 사용</span>
+              <span>Enable PIN lock</span>
               <button
                 type="button"
                 className={preferences.enabled ? styles.primaryButton : styles.secondaryButton}
                 onClick={() => setPreferences({ ...preferences, enabled: !preferences.enabled })}
               >
-                {preferences.enabled ? "켜짐" : "꺼짐"}
+                {preferences.enabled ? "On" : "Off"}
               </button>
             </div>
 
@@ -143,14 +143,14 @@ export function SettingsScreen() {
                   }
                   onClick={() => setPreferences({ ...preferences, timeoutMinutes: minutes })}
                 >
-                  {minutes}분 후 잠금
+                  Lock after {minutes} min
                 </button>
               ))}
             </div>
 
             <div className={styles.inlineButtons}>
               <button type="button" className={styles.secondaryButton} onClick={() => setLocked(true)}>
-                지금 잠그기
+                Lock now
               </button>
               <button
                 type="button"
@@ -161,14 +161,14 @@ export function SettingsScreen() {
                   setPreferences({ ...preferences, enabled: false });
                 }}
               >
-                PIN 삭제
+                Remove PIN
               </button>
             </div>
           </>
         ) : (
           <div className={styles.pinSetup}>
             <label>
-              4자리 PIN
+              4-digit PIN
               <input
                 inputMode="numeric"
                 value={pinValue}
@@ -177,7 +177,7 @@ export function SettingsScreen() {
               />
             </label>
             <label>
-              PIN 확인
+              Confirm PIN
               <input
                 inputMode="numeric"
                 value={confirmPin}
@@ -188,7 +188,7 @@ export function SettingsScreen() {
               />
             </label>
             <button type="button" className={styles.primaryButton} onClick={handlePinSave}>
-              PIN 저장
+              Save PIN
             </button>
           </div>
         )}
@@ -198,19 +198,19 @@ export function SettingsScreen() {
         <div className={styles.cardHeader}>
           <Download size={18} />
           <div>
-            <strong>내보내기 / 가져오기</strong>
-            <p>텍스트, 체크리스트, 사진 정보, 손글씨 stroke 데이터를 JSON으로 옮길 수 있습니다.</p>
+            <strong>Export / Import</strong>
+            <p>Move journal text, tasks, time plans, photo data, and handwriting strokes as JSON.</p>
           </div>
         </div>
 
         <div className={styles.inlineButtons}>
           <button type="button" className={styles.primaryButton} onClick={handleExport}>
             <Download size={16} />
-            JSON 내보내기
+            Export JSON
           </button>
           <label className={styles.uploadButton}>
             <Upload size={16} />
-            JSON 가져오기
+            Import JSON
             <input type="file" accept="application/json" onChange={handleImport} />
           </label>
         </div>
@@ -220,13 +220,13 @@ export function SettingsScreen() {
         <div className={styles.cardHeader}>
           <LogOut size={18} />
           <div>
-            <strong>계정</strong>
-            <p>혼자 쓰는 개인 다이어리 기준으로 맞춘 앱입니다. 공유 기능은 없습니다.</p>
+            <strong>Account</strong>
+            <p>This app is built for one person across many devices, with no sharing or team features.</p>
           </div>
         </div>
 
         <button type="button" className={styles.secondaryButton} onClick={handleSignOut}>
-          로그아웃
+          Sign out
         </button>
       </section>
 
