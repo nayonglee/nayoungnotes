@@ -87,7 +87,9 @@
 .themeRow,
 .boardToolbar,
 .stickerRow,
-.toolRow {
+.toolRow,
+.presetRow,
+.canvasControlRow {
   display: flex;
   flex-wrap: wrap;
   gap: 0.7rem;
@@ -109,7 +111,11 @@
 .toolChip,
 .toolActive,
 .widthChip,
-.widthActive {
+.widthActive,
+.presetChip,
+.presetActive,
+.policyChip,
+.policyActive {
   border: none;
 }
 
@@ -124,7 +130,11 @@
 .toolChip,
 .toolActive,
 .widthChip,
-.widthActive {
+.widthActive,
+.presetChip,
+.presetActive,
+.policyChip,
+.policyActive {
   border-radius: 999px;
   padding: 0.72rem 0.95rem;
 }
@@ -133,7 +143,9 @@
 .moodActive,
 .themeActive,
 .toolActive,
-.widthActive {
+.widthActive,
+.presetActive,
+.policyActive {
   background: linear-gradient(135deg, rgba(255, 208, 226, 1), rgba(227, 243, 204, 0.96));
   box-shadow:
     var(--shadow-card),
@@ -146,7 +158,9 @@
 .stickerPicker,
 .addButton,
 .toolChip,
-.widthChip {
+.widthChip,
+.presetChip,
+.policyChip {
   background: rgba(255, 255, 255, 0.94);
   box-shadow: inset 0 0 0 1px rgba(140, 116, 126, 0.12);
 }
@@ -484,11 +498,21 @@
   gap: 0.7rem;
 }
 
+.presetChip,
+.presetActive,
 .toolChip,
 .toolActive {
   display: inline-flex;
   align-items: center;
   gap: 0.45rem;
+}
+
+.presetDot {
+  width: 14px;
+  height: 14px;
+  border-radius: 999px;
+  display: block;
+  box-shadow: 0 0 0 1px rgba(140, 116, 126, 0.14);
 }
 
 .colorSwatch {
@@ -523,6 +547,30 @@
   background: var(--ink);
 }
 
+.canvasControlRow {
+  justify-content: space-between;
+  align-items: center;
+}
+
+.policyChip,
+.policyActive {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.zoomBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 62px;
+  padding: 0.7rem 0.9rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: inset 0 0 0 1px rgba(140, 116, 126, 0.12);
+  color: var(--muted);
+}
+
 .canvasWrap {
   min-height: 360px;
   border-radius: 28px;
@@ -530,6 +578,12 @@
   position: relative;
   background: rgba(255, 255, 255, 0.94);
   box-shadow: inset 0 0 0 1px rgba(140, 116, 126, 0.12);
+}
+
+.canvasViewport {
+  position: relative;
+  overflow: hidden;
+  min-height: 360px;
 }
 
 .canvasWrap[data-background="ruled"] {
@@ -550,6 +604,19 @@
   width: 100%;
   height: 360px;
   touch-action: none;
+  transform-origin: top left;
+}
+
+.canvasHint {
+  position: absolute;
+  left: 1rem;
+  bottom: 1rem;
+  border-radius: 999px;
+  padding: 0.42rem 0.75rem;
+  background: rgba(255, 255, 255, 0.88);
+  box-shadow: inset 0 0 0 1px rgba(140, 116, 126, 0.1);
+  color: var(--muted);
+  font-size: 0.8rem;
 }
 
 @media (max-width: 920px) {
@@ -566,7 +633,15 @@
     width: 170px;
   }
 
+  .canvasControlRow {
+    align-items: stretch;
+  }
+
   .canvas {
     height: 320px;
+  }
+
+  .canvasViewport {
+    min-height: 320px;
   }
 }

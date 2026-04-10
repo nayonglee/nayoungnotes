@@ -5,12 +5,12 @@
 
 .heroRow {
   display: grid;
-  grid-template-columns: minmax(260px, 0.9fr) minmax(0, 1.1fr);
+  grid-template-columns: minmax(260px, 0.86fr) minmax(0, 1.14fr);
   gap: 1rem;
 }
 
 .todayCard,
-.recentCard,
+.previewBoard,
 .archiveCard {
   background: rgba(255, 251, 252, 0.95);
   border: 1px solid rgba(140, 116, 126, 0.15);
@@ -27,46 +27,106 @@
 .todayCard::before {
   content: "";
   position: absolute;
-  inset: auto -12% -30% auto;
+  inset: auto -10% -25% auto;
   width: 180px;
   height: 180px;
-  background: radial-gradient(circle, rgba(255, 221, 235, 0.9), transparent 66%);
+  background: radial-gradient(circle, rgba(255, 219, 234, 0.9), transparent 68%);
   filter: blur(10px);
 }
 
-.sectionTag {
+.todayTop,
+.previewHeader,
+.statsRow,
+.scrapHeader,
+.scrapFooter,
+.cardHeader,
+.controls,
+.quickMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+}
+
+.todayTop,
+.previewHeader,
+.cardHeader {
+  justify-content: space-between;
+  align-items: start;
+}
+
+.sectionTag,
+.todayBadge,
+.boardBadge,
+.statChip,
+.dateChip,
+.moodStamp,
+.dayMood {
   display: inline-flex;
-  padding: 0.38rem 0.72rem;
+  align-items: center;
+  gap: 0.35rem;
   border-radius: 999px;
+  min-height: 30px;
+  padding: 0.34rem 0.72rem;
+  font-size: 0.78rem;
+}
+
+.sectionTag {
   background: rgba(255, 220, 233, 0.7);
   color: var(--muted);
-  font-size: 0.76rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
+.todayBadge,
+.boardBadge,
+.statChip,
+.dateChip,
+.moodStamp,
+.dayMood {
+  background: rgba(255, 255, 255, 0.9);
+  color: var(--muted);
+  box-shadow: inset 0 0 0 1px rgba(140, 116, 126, 0.1);
+}
+
 .todayCard h3,
-.archiveCard h3,
-.recentCard h3 {
-  margin: 0.8rem 0 0.3rem;
+.previewBoard h3,
+.archiveCard h3 {
+  margin: 0.82rem 0 0.3rem;
   font-family: "Newsreader", serif;
-  font-size: 1.85rem;
+  font-size: 1.9rem;
 }
 
 .todayCard p,
-.recentCard p {
-  color: var(--muted);
+.previewBoard p,
+.entryRow p {
   margin: 0;
+  color: var(--muted);
   line-height: 1.62;
+}
+
+.quickMeta {
+  margin-top: 1rem;
+}
+
+.quickMeta span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  border-radius: 999px;
+  padding: 0.35rem 0.72rem;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: inset 0 0 0 1px rgba(140, 116, 126, 0.1);
+  color: var(--muted);
+  font-size: 0.83rem;
 }
 
 .primaryAction,
 .toggle,
 .activeToggle,
 .iconButton,
-.plainButton,
-.recentChip,
-.entryRow {
+.entryRow,
+.scrapCard,
+.plainButton {
   border: none;
 }
 
@@ -80,34 +140,111 @@
   background: linear-gradient(135deg, rgba(255, 208, 226, 1), rgba(227, 243, 204, 0.96));
   box-shadow:
     var(--shadow-card),
-    0 0 22px rgba(248, 217, 232, 0.38);
+    0 0 20px rgba(248, 217, 232, 0.38);
 }
 
-.quickMeta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.55rem;
+.previewBoard {
+  position: relative;
+  overflow: hidden;
+}
+
+.previewBoard::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(rgba(140, 116, 126, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(140, 116, 126, 0.03) 1px, transparent 1px);
+  background-size: 22px 22px;
+  pointer-events: none;
+}
+
+.statsRow {
+  position: relative;
+  z-index: 1;
+  margin-top: 0.9rem;
+}
+
+.scrapGrid {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.9rem;
   margin-top: 1rem;
 }
 
-.quickMeta span,
-.recentChip small {
-  display: inline-flex;
-  align-items: center;
-  min-height: 32px;
-  border-radius: 999px;
-  padding: 0.35rem 0.72rem;
-  background: rgba(255, 255, 255, 0.88);
-  box-shadow: inset 0 0 0 1px rgba(140, 116, 126, 0.1);
-  color: var(--muted);
-  font-size: 0.83rem;
+.scrapCard {
+  position: relative;
+  display: grid;
+  gap: 0.65rem;
+  min-height: 190px;
+  padding: 1rem;
+  text-align: left;
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow:
+    var(--shadow-card),
+    0 0 0 1px rgba(255, 245, 249, 0.62);
+  transform: rotate(var(--rotation, 0deg));
 }
 
-.cardHeader {
-  display: flex;
+.scrapCard[data-theme="petal"] {
+  background: linear-gradient(180deg, rgba(255, 242, 247, 0.98), rgba(255, 255, 255, 0.96));
+}
+
+.scrapCard[data-theme="mint"] {
+  background: linear-gradient(180deg, rgba(244, 255, 240, 0.98), rgba(255, 255, 255, 0.96));
+}
+
+.scrapCard[data-theme="berry"] {
+  background: linear-gradient(180deg, rgba(255, 239, 244, 0.98), rgba(255, 255, 255, 0.96));
+}
+
+.scrapTape {
+  position: absolute;
+  top: -8px;
+  left: 26px;
+  width: 64px;
+  height: 20px;
+  border-radius: 8px;
+  background: rgba(255, 230, 178, 0.76);
+  box-shadow: inset 0 0 0 1px rgba(170, 141, 108, 0.08);
+  transform: rotate(-8deg);
+}
+
+.scrapHeader {
   justify-content: space-between;
   align-items: start;
-  gap: 1rem;
+}
+
+.scrapCard strong {
+  font-size: 1rem;
+  line-height: 1.38;
+}
+
+.scrapCard p {
+  font-size: 0.92rem;
+  line-height: 1.56;
+}
+
+.scrapFooter {
+  margin-top: auto;
+  color: var(--muted);
+  font-size: 0.84rem;
+}
+
+.emptyBoard {
+  position: relative;
+  z-index: 1;
+  margin-top: 1rem;
+  border-radius: 22px;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.88);
+}
+
+.emptyBoard p {
+  margin-top: 0.35rem;
 }
 
 .plainButton {
@@ -115,35 +252,7 @@
   color: var(--muted);
 }
 
-.recentStrip {
-  display: flex;
-  gap: 0.75rem;
-  overflow-x: auto;
-  padding-top: 0.9rem;
-}
-
-.recentChip {
-  min-width: 154px;
-  display: grid;
-  gap: 0.24rem;
-  text-align: left;
-  padding: 0.9rem;
-  border-radius: 20px;
-  background:
-    linear-gradient(180deg, rgba(255, 245, 249, 0.96), rgba(255, 255, 255, 0.94));
-  box-shadow:
-    inset 0 0 0 1px rgba(140, 116, 126, 0.1),
-    0 12px 24px rgba(233, 207, 217, 0.12);
-}
-
-.recentChip span {
-  color: var(--muted);
-  font-size: 0.92rem;
-}
-
 .controls {
-  display: flex;
-  flex-wrap: wrap;
   gap: 0.55rem;
 }
 
@@ -177,40 +286,55 @@
 }
 
 .dayCell {
-  min-height: 108px;
+  position: relative;
+  min-height: 118px;
   border: none;
-  border-radius: 20px;
-  padding: 0.74rem;
+  border-radius: 22px;
+  padding: 0.78rem;
   text-align: left;
   display: grid;
   align-content: start;
-  gap: 0.3rem;
-  background: rgba(255, 255, 255, 0.88);
+  gap: 0.34rem;
+  background: rgba(255, 255, 255, 0.9);
   box-shadow: inset 0 0 0 1px rgba(140, 116, 126, 0.08);
+}
+
+.dayCell::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 18px;
+  width: 56px;
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(255, 224, 236, 0.88);
 }
 
 .dayTop {
   display: flex;
   justify-content: space-between;
+  align-items: start;
   gap: 0.4rem;
-  align-items: center;
+}
+
+.dayNumber {
+  font-weight: 700;
 }
 
 .dayCell strong {
-  font-size: 0.88rem;
-  line-height: 1.35;
+  font-size: 0.9rem;
+  line-height: 1.36;
 }
 
 .dayCell[data-outside="true"] {
-  opacity: 0.46;
+  opacity: 0.44;
 }
 
 .dayCell[data-filled="true"] {
-  background:
-    linear-gradient(180deg, rgba(255, 242, 247, 0.94), rgba(255, 255, 255, 0.96));
+  background: linear-gradient(180deg, rgba(255, 242, 247, 0.95), rgba(255, 255, 255, 0.97));
   box-shadow:
     inset 0 0 0 1px rgba(255, 215, 230, 0.42),
-    0 0 22px rgba(250, 217, 233, 0.22);
+    0 0 22px rgba(250, 217, 233, 0.2);
 }
 
 .dayCell[data-today="true"] {
@@ -240,24 +364,24 @@
   text-align: left;
   padding: 0.98rem 1rem;
   border-radius: 20px;
-  background: rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.92);
   box-shadow: inset 0 0 0 1px rgba(140, 116, 126, 0.1);
-}
-
-.entryRow p,
-.rowMeta {
-  margin: 0.18rem 0 0;
-  color: var(--muted);
 }
 
 .rowMeta {
   display: grid;
   justify-items: end;
+  gap: 0.14rem;
+  color: var(--muted);
   font-size: 0.9rem;
 }
 
-@media (max-width: 900px) {
+@media (max-width: 920px) {
   .heroRow {
+    grid-template-columns: 1fr;
+  }
+
+  .scrapGrid {
     grid-template-columns: 1fr;
   }
 

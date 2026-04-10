@@ -27,21 +27,21 @@ export const themePresets: {
     label: "하트 커버",
     texture: "paper",
     boardTone: "cream",
-    description: "연한 핑크 종이 질감과 부드러운 하트빛 톤"
+    description: "연한 핑크 종이 질감과 하트빛 포인트"
   },
   {
     id: "mint",
     label: "스타 민트",
     texture: "dot",
     boardTone: "mint",
-    description: "별 스티커가 어울리는 민트 포인트 도트 페이지"
+    description: "별 스티커가 잘 어울리는 민트 도트 페이지"
   },
   {
     id: "berry",
     label: "리본 노트",
     texture: "ruled",
     boardTone: "blush",
-    description: "리본 메모지 같은 라인지 느낌의 핑크 페이지"
+    description: "리본 메모지 같은 라인지 핑크 페이지"
   }
 ];
 
@@ -53,8 +53,8 @@ export const stickerPresets: {
   rotation: PresetRotation;
 }[] = [
   { id: "starry", label: "별", motif: "star", tint: "#ffe7f1", rotation: -5 },
-  { id: "mushroom", label: "캔디", motif: "mushroom", tint: "#ffe7de", rotation: 5 },
-  { id: "strawberry", label: "하트", motif: "strawberry", tint: "#ffd6e6", rotation: -5 },
+  { id: "mushroom", label: "캔디", motif: "swirl", tint: "#ffe7de", rotation: 5 },
+  { id: "strawberry", label: "하트", motif: "heart", tint: "#ffd6e6", rotation: -5 },
   { id: "flower", label: "꽃", motif: "flower", tint: "#eaf5d8", rotation: 0 },
   { id: "ribbon", label: "리본", motif: "ribbon", tint: "#ffeef5", rotation: 5 }
 ];
