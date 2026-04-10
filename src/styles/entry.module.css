@@ -19,6 +19,24 @@
   --board-base: rgba(255, 247, 250, 0.97);
 }
 
+.editorPage[data-theme-preset="butter"] {
+  --entry-accent: rgba(255, 241, 196, 0.82);
+  --entry-glow: rgba(255, 238, 173, 0.28);
+  --board-base: rgba(255, 252, 242, 0.98);
+}
+
+.editorPage[data-theme-preset="lilac"] {
+  --entry-accent: rgba(236, 229, 251, 0.84);
+  --entry-glow: rgba(229, 216, 251, 0.34);
+  --board-base: rgba(252, 249, 255, 0.98);
+}
+
+.editorPage[data-theme-preset="sky"] {
+  --entry-accent: rgba(220, 237, 255, 0.84);
+  --entry-glow: rgba(216, 232, 255, 0.34);
+  --board-base: rgba(248, 252, 255, 0.98);
+}
+
 .loadingState {
   padding: 2rem;
   border-radius: 24px;
@@ -103,7 +121,7 @@
 
 .metaIntro {
   display: grid;
-  gap: 0.2rem;
+  gap: 0.35rem;
 }
 
 .metaActions {
@@ -288,13 +306,6 @@
   gap: 1rem;
 }
 
-.coverLayout {
-  display: grid;
-  grid-template-columns: minmax(0, 1.15fr) minmax(280px, 0.85fr);
-  gap: 1rem;
-  align-items: start;
-}
-
 .titlePanel,
 .settingsBlock {
   display: grid;
@@ -359,7 +370,7 @@
 
 .plannerMainRow {
   display: grid;
-  grid-template-columns: minmax(152px, 190px) minmax(0, 1fr) auto;
+  grid-template-columns: minmax(144px, 168px) minmax(0, 1fr) auto;
   gap: 0.65rem;
   align-items: center;
 }
@@ -379,26 +390,6 @@
   grid-template-columns: auto minmax(0, 1fr);
   gap: 0.55rem;
   align-items: center;
-}
-
-.plannerTimeField {
-  display: grid;
-  gap: 0.28rem;
-}
-
-.plannerTimeBadge {
-  display: inline-flex;
-  align-items: center;
-  justify-self: start;
-  min-height: 28px;
-  border-radius: 999px;
-  padding: 0.3rem 0.68rem;
-  background: rgba(255, 239, 245, 0.92);
-  box-shadow: inset 0 0 0 1px rgba(140, 116, 126, 0.08);
-  color: var(--muted);
-  font-size: 0.8rem;
-  font-weight: 700;
-  letter-spacing: 0.02em;
 }
 
 .todoRow {
@@ -428,7 +419,7 @@
   line-height: 1.55;
 }
 
-.timeInput,
+.plannerTimeInput,
 .plannerTitleInput,
 .plannerNoteInput {
   width: 100%;
@@ -440,7 +431,7 @@
   transition: box-shadow 140ms ease;
 }
 
-.timeInput:focus,
+.plannerTimeInput:focus,
 .plannerTitleInput:focus,
 .plannerNoteInput:focus {
   box-shadow:
@@ -449,9 +440,14 @@
     0 0 22px rgba(248, 217, 232, 0.42);
 }
 
-.timeInput {
-  padding: 0.78rem 0.84rem;
+.plannerTimeInput {
+  min-height: 42px;
+  border-radius: 999px;
+  padding: 0.72rem 0.86rem;
+  background: linear-gradient(135deg, rgba(255, 233, 241, 0.98), rgba(255, 247, 250, 0.96));
   color: var(--ink);
+  font-weight: 700;
+  letter-spacing: 0.01em;
 }
 
 .plannerTitleInput,
@@ -500,8 +496,19 @@
 
 .boardToolbarMain {
   align-items: center;
+  gap: 0.72rem;
+}
+
+.paperStyleRow,
+.boardActionRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.boardActionRow {
   justify-content: space-between;
-  gap: 0.75rem;
 }
 
 .layoutRow {
@@ -551,60 +558,51 @@
 }
 
 .photoCard {
-  width: 196px;
-  padding: 0.55rem 0.55rem 0.85rem;
-  border-radius: 22px;
+  width: 198px;
+  padding: 0.76rem 0.76rem 0.92rem;
+  border-radius: 18px;
   background: rgba(255, 255, 255, 0.98);
   box-shadow:
     var(--shadow-card),
     0 0 0 1px rgba(255, 240, 246, 0.42);
 }
 
-.photoCard::before,
-.photoCard::after {
+.photoCard::before {
   content: "";
   position: absolute;
-  top: -8px;
-  width: 56px;
-  height: 18px;
+  top: -9px;
+  left: 50%;
+  width: 72px;
+  height: 17px;
   border-radius: 8px;
   background: rgba(255, 230, 178, 0.78);
   box-shadow: inset 0 0 0 1px rgba(170, 141, 108, 0.08);
-}
-
-.photoCard::before {
-  left: 18px;
-  transform: rotate(-7deg);
-}
-
-.photoCard::after {
-  right: 18px;
-  transform: rotate(8deg);
+  transform: translateX(-50%) rotate(-5deg);
 }
 
 .photoToolbar,
 .stickerToolbar {
   display: flex;
-  justify-content: flex-end;
+  justify-content: center;
   gap: 0.35rem;
-  margin-bottom: 0.45rem;
 }
 
+.photoToolbar,
 .stickerToolbar {
   position: absolute;
   top: -12px;
   left: 50%;
   z-index: 2;
-  margin-bottom: 0;
   transform: translateX(-50%);
 }
 
 .photoFrame {
   position: relative;
-  border-radius: 15px;
+  border-radius: 10px;
   overflow: hidden;
   background: linear-gradient(180deg, rgba(255, 236, 244, 0.9), rgba(255, 255, 255, 0.95));
   aspect-ratio: 1 / 1;
+  box-shadow: inset 0 0 0 1px rgba(140, 116, 126, 0.08);
 }
 
 .photoImage,
@@ -619,10 +617,25 @@
 }
 
 .photoCaption {
-  margin-top: 0.58rem;
+  margin-top: 0.72rem;
   resize: none;
-  padding: 0.68rem 0.78rem;
+  padding: 0.2rem 0.1rem 0;
   font-size: 0.92rem;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  min-height: 1.4rem;
+}
+
+.photoCaption:focus {
+  box-shadow: none;
+}
+
+.photoCard[data-selected="true"] {
+  box-shadow:
+    var(--shadow-card),
+    0 0 0 2px rgba(244, 201, 219, 0.42),
+    0 0 26px rgba(248, 217, 232, 0.24);
 }
 
 .stickerCard {
@@ -650,7 +663,7 @@
   height: 28px;
   border-radius: 999px;
   box-shadow: 0 0 20px 10px var(--sticker-tint, rgba(255, 214, 230, 0.92));
-  opacity: 0.26;
+  opacity: 0.18;
 }
 
 .stickerPicker {
@@ -685,6 +698,10 @@
 .stickerCard[data-motif="ribbon"] .stickerMotif {
   width: 80px;
   height: 62px;
+}
+
+.stickerCard[data-selected="true"] .stickerHalo {
+  opacity: 0.28;
 }
 
 .boardEmpty {
@@ -865,6 +882,45 @@
   font-size: 0.8rem;
 }
 
+.paperStyleChip,
+.paperStyleActive {
+  width: 38px;
+  height: 38px;
+  border-radius: 999px;
+  padding: 0;
+  border: none;
+  display: grid;
+  place-items: center;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: inset 0 0 0 1px rgba(140, 116, 126, 0.12);
+}
+
+.paperStyleActive {
+  box-shadow:
+    inset 0 0 0 2px rgba(255, 255, 255, 0.96),
+    0 0 0 2px rgba(233, 187, 206, 0.34),
+    0 0 18px rgba(248, 217, 232, 0.26);
+}
+
+.paperStyleSwatch {
+  position: relative;
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  background: var(--paper-swatch, linear-gradient(135deg, #f8d5e4, #fff8fb));
+  box-shadow:
+    inset 0 0 0 1px rgba(140, 116, 126, 0.12),
+    0 4px 10px rgba(140, 116, 126, 0.08);
+}
+
+.paperStyleSwatch::after {
+  content: "";
+  position: absolute;
+  inset: 6px;
+  border-radius: 999px;
+  border: 1px solid var(--paper-detail, rgba(140, 116, 126, 0.18));
+}
+
 @media (max-width: 920px) {
   .grid,
   .themeRow,
@@ -886,6 +942,11 @@
 
   .boardToolbarMain,
   .canvasControlRow {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .boardActionRow {
     flex-direction: column;
     align-items: stretch;
   }

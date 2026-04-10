@@ -1,6 +1,7 @@
 "use client";
 
 import type { KeyboardEvent } from "react";
+import { useRef } from "react";
 import TextareaAutosize from "react-textarea-autosize";
 import { CirclePlus, Trash2 } from "lucide-react";
 import { createTodoCard } from "@/lib/entry";
@@ -14,6 +15,7 @@ export function TodoEditor({
   items: TodoCard[];
   onChange: (items: TodoCard[]) => void;
 }) {
+  const inputRefs = useRef<Record<string, HTMLTextAreaElement | null>>({});
   const safeItems = items.length > 0 ? items : [createTodoCard()];
 
   const updateItem = (id: string, patch: Partial<TodoCard>) => {
@@ -26,8 +28,16 @@ export function TodoEditor({
 
   const insertAfter = (index: number) => {
     const next = [...safeItems];
-    next.splice(index + 1, 0, createTodoCard());
+    const created = createTodoCard();
+    next.splice(index + 1, 0, created);
     onChange(next);
+    window.requestAnimationFrame(() => {
+      const target = inputRefs.current[created.id];
+      if (!target) return;
+      target.focus();
+      const length = target.value.length;
+      target.setSelectionRange(length, length);
+    });
   };
 
   const handleKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>, index: number, item: TodoCard) => {
@@ -56,6 +66,9 @@ export function TodoEditor({
             className={styles.todoInput}
             minRows={1}
             value={item.text}
+            ref={(node) => {
+              inputRefs.current[item.id] = node;
+            }}
             onChange={(event) => updateItem(item.id, { text: event.target.value })}
             onKeyDown={(event) => handleKeyDown(event, index, item)}
             placeholder="Write a task"

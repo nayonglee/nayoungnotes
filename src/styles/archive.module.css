@@ -88,6 +88,14 @@
   margin-bottom: 1rem;
 }
 
+.spreadHeaderTop,
+.spreadNav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+}
+
 .spreadTag,
 .sectionTag,
 .tileDate,
@@ -116,6 +124,34 @@
 .spreadHeader strong {
   font-family: "Newsreader", serif;
   font-size: clamp(1.9rem, 3vw, 2.5rem);
+}
+
+.spreadMeta {
+  max-width: 38rem;
+}
+
+.spreadIconButton,
+.spreadTodayButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  border: none;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: inset 0 0 0 1px rgba(140, 116, 126, 0.08);
+  color: var(--muted);
+}
+
+.spreadIconButton {
+  width: 34px;
+  height: 34px;
+  padding: 0;
+}
+
+.spreadTodayButton {
+  min-height: 34px;
+  padding: 0.38rem 0.7rem;
 }
 
 .spreadHeader small,
@@ -768,7 +804,7 @@
   margin-top: 0.95rem;
   position: relative;
   border-radius: 28px;
-  padding: 0.9rem;
+  padding: 1rem;
   background:
     linear-gradient(rgba(141, 118, 127, 0.03) 1px, transparent 1px),
     linear-gradient(90deg, rgba(141, 118, 127, 0.03) 1px, transparent 1px),
@@ -789,40 +825,57 @@
   transform: rotate(-8deg);
 }
 
+.calendarPaper::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 28px;
+  box-shadow: inset 32px 0 0 rgba(255, 245, 248, 0.72);
+  pointer-events: none;
+}
+
 .calendarGrid {
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
-  gap: 0.6rem;
+  gap: 0.72rem;
 }
 
 .weekday {
   text-align: center;
-  font-size: 0.83rem;
+  font-size: 0.76rem;
   color: var(--muted);
+  min-height: 30px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: rgba(255, 253, 254, 0.88);
+  box-shadow: inset 0 0 0 1px rgba(140, 116, 126, 0.06);
 }
 
 .dayCell {
   position: relative;
-  min-height: 118px;
-  border-radius: 22px;
-  padding: 0.78rem;
+  min-height: 126px;
+  border-radius: 20px;
+  padding: 0.82rem 0.84rem 0.76rem;
   text-align: left;
   display: grid;
   align-content: start;
-  gap: 0.34rem;
-  background: rgba(255, 255, 255, 0.9);
-  box-shadow: inset 0 0 0 1px rgba(140, 116, 126, 0.08);
+  gap: 0.42rem;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow:
+    inset 0 0 0 1px rgba(140, 116, 126, 0.08),
+    0 8px 18px rgba(212, 186, 197, 0.08);
 }
 
 .dayCell::before {
   content: "";
   position: absolute;
-  top: 0;
-  left: 18px;
-  width: 56px;
-  height: 10px;
+  top: 9px;
+  left: 16px;
+  width: 38px;
+  height: 8px;
   border-radius: 999px;
-  background: rgba(255, 224, 236, 0.88);
+  background: rgba(255, 224, 236, 0.74);
 }
 
 .dayTop {
@@ -834,6 +887,12 @@
 
 .dayNumber {
   font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.dayEntryContent {
+  display: grid;
+  gap: 0.28rem;
 }
 
 .dayCell strong {
@@ -849,7 +908,7 @@
   background: linear-gradient(180deg, rgba(255, 242, 247, 0.95), rgba(255, 255, 255, 0.97));
   box-shadow:
     inset 0 0 0 1px rgba(255, 215, 230, 0.42),
-    0 0 22px rgba(250, 217, 233, 0.2);
+    0 10px 22px rgba(250, 217, 233, 0.16);
 }
 
 .dayCell[data-today="true"] {
@@ -863,6 +922,53 @@
   color: var(--muted);
   font-size: 0.78rem;
   line-height: 1.35;
+}
+
+.dayEntryMeta {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  min-height: 24px;
+  padding: 0.18rem 0.5rem;
+  border-radius: 999px;
+  background: rgba(255, 250, 252, 0.92);
+  box-shadow: inset 0 0 0 1px rgba(140, 116, 126, 0.08);
+}
+
+.dayHint {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  margin-top: auto;
+  min-height: 24px;
+  padding: 0.16rem 0.5rem;
+  border-radius: 999px;
+  background: rgba(255, 249, 251, 0.92);
+  box-shadow: inset 0 0 0 1px rgba(140, 116, 126, 0.08);
+}
+
+.dayFaintLines {
+  display: grid;
+  gap: 0.34rem;
+  margin-top: auto;
+  padding-top: 0.3rem;
+}
+
+.dayFaintLines::before,
+.dayFaintLines::after {
+  content: "";
+  display: block;
+  height: 2px;
+  border-radius: 999px;
+  background: rgba(140, 116, 126, 0.1);
+}
+
+.dayFaintLines::before {
+  width: 56%;
+}
+
+.dayFaintLines::after {
+  width: 34%;
 }
 
 .listView {
@@ -902,12 +1008,6 @@
     display: none;
   }
 
-  .cardHeader,
-  .calendarControls {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
   .bookScene {
     min-height: 620px;
   }
@@ -927,6 +1027,11 @@
 
   .calendarSpread {
     min-height: 500px;
+  }
+
+  .spreadHeaderTop {
+    flex-direction: column;
+    align-items: flex-start;
   }
 }
 

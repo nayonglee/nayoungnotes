@@ -1,120 +1,27 @@
 "use client";
 
 import type {
-  CSSProperties,
   TouchEvent as ReactTouchEvent,
   WheelEvent as ReactWheelEvent
 } from "react";
-import { startTransition, useEffect, useMemo, useRef, useState } from "react";
+import { startTransition, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { addMonths, format, parseISO, subMonths } from "date-fns";
-import NextImage from "next/image";
-import { CalendarRange, ChevronDown, ChevronLeft, ChevronRight, List, Plus } from "lucide-react";
-import { ScrapIcon, type ScrapIconKind } from "@/components/ui/scrap-icon";
+import { ChevronDown, ChevronLeft, ChevronRight, Plus } from "lucide-react";
+import { ScrapIcon } from "@/components/ui/scrap-icon";
 import { buildCalendarMatrix, todayKey } from "@/lib/date";
-import { getLocalAsset } from "@/lib/local/database";
 import { loadEntryOverviews } from "@/lib/local/sync";
 import { useAuthStore } from "@/store/auth-store";
-import type { EntryOverview, MoodKey, ThemePreset } from "@/types/diary";
+import type { EntryOverview } from "@/types/diary";
 import styles from "@/styles/archive.module.css";
 
 const weekdayLabels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const EMPTY_ENTRIES: EntryOverview[] = [];
 
-const moodStampMap: Record<MoodKey, { label: string; icon: ScrapIconKind }> = {
-  glowy: { label: "Glow", icon: "spark" },
-  calm: { label: "Calm", icon: "flower" },
-  proud: { label: "Proud", icon: "heart" },
-  busy: { label: "Busy", icon: "ribbon" },
-  dreamy: { label: "Dreamy", icon: "swirl" },
-  gentle: { label: "Soft", icon: "star" }
-};
-
-function themeLabel(theme: ThemePreset) {
-  if (theme === "mint") return "mint";
-  if (theme === "berry") return "berry";
-  return "petal";
-}
-
-function useLocalAssetUrl(assetId?: string, remoteUrl?: string) {
-  const [assetUrl, setAssetUrl] = useState<string>();
-
-  useEffect(() => {
-    if (!assetId || remoteUrl) return;
-
-    let objectUrl: string | undefined;
-    void getLocalAsset(assetId).then((asset) => {
-      if (!asset) return;
-      objectUrl = URL.createObjectURL(asset.blob);
-      setAssetUrl(objectUrl);
-    });
-
-    return () => {
-      if (objectUrl) URL.revokeObjectURL(objectUrl);
-    };
-  }, [assetId, remoteUrl]);
-
-  return remoteUrl ?? assetUrl;
-}
-
-function BoardTile({
-  entry,
-  onOpen
-}: {
-  entry: EntryOverview;
-  onOpen: (date: string) => void;
-}) {
-  const coverUrl = useLocalAssetUrl(entry.coverPhotoLocalAssetId, entry.coverPhotoUrl);
-  const mood = entry.mood ? moodStampMap[entry.mood] : null;
-
-  return (
-    <button
-      type="button"
-      className={styles.boardTile}
-      data-theme={themeLabel(entry.themeConfig.preset)}
-      onClick={() => onOpen(entry.entryDate)}
-    >
-      <div className={styles.tileTape} />
-      <div className={styles.tileMedia}>
-        {coverUrl ? (
-          <NextImage src={coverUrl} alt="" fill unoptimized className={styles.tileImage} />
-        ) : (
-          <div className={styles.tileArtwork}>
-            <ScrapIcon kind={entry.themeConfig.preset === "mint" ? "star" : "heart"} size={34} />
-            <ScrapIcon kind={entry.themeConfig.preset === "berry" ? "ribbon" : "swirl"} size={24} />
-            <ScrapIcon kind="flower" size={26} />
-          </div>
-        )}
-        <div className={styles.tileOverlay} />
-      </div>
-
-      <div className={styles.tileBody}>
-        <div className={styles.tileTop}>
-          <span className={styles.tileDate}>{format(parseISO(entry.entryDate), "MMM d")}</span>
-          {mood ? (
-            <span className={styles.tileMood}>
-              <ScrapIcon kind={mood.icon} size={16} />
-              {mood.label}
-            </span>
-          ) : null}
-        </div>
-        <strong>{entry.title}</strong>
-        <p>{entry.previewText || "Open the page to add photos, plans, handwriting, and notes."}</p>
-        <div className={styles.tileFooter}>
-          <span>{entry.photoCount} photos</span>
-          <span>{entry.todoCount} tasks</span>
-          <span>{entry.plannerCount} plans</span>
-        </div>
-      </div>
-    </button>
-  );
-}
-
 export function ArchiveHome() {
   const router = useRouter();
   const viewer = useAuthStore((state) => state.viewer);
-  const [viewMode, setViewMode] = useState<"calendar" | "list">("calendar");
   const [anchorDate, setAnchorDate] = useState(todayKey());
   const [coverOpened, setCoverOpened] = useState(false);
   const touchStartY = useRef<number | null>(null);
@@ -132,15 +39,11 @@ export function ArchiveHome() {
     [entries]
   );
   const weeks = buildCalendarMatrix(anchorDate);
-  const boardEntries = entries.slice(0, 12);
   const monthEntries = useMemo(
     () => entries.filter((entry) => entry.entryDate.startsWith(anchorDate.slice(0, 7))),
     [anchorDate, entries]
   );
   const monthPhotoCount = monthEntries.reduce((sum, entry) => sum + entry.photoCount, 0);
-  const monthPlanCount = monthEntries.reduce((sum, entry) => sum + entry.plannerCount, 0);
-  const monthTodoDone = monthEntries.reduce((sum, entry) => sum + entry.completedTodoCount, 0);
-  const monthTodoTotal = monthEntries.reduce((sum, entry) => sum + entry.todoCount, 0);
 
   const openEntry = (date: string) => {
     startTransition(() => {
@@ -181,9 +84,39 @@ export function ArchiveHome() {
         <div className={styles.bookScene}>
           <div className={styles.calendarSpread} data-open={coverOpened}>
             <div className={styles.spreadHeader}>
-              <span className={styles.spreadTag}>calendar</span>
+              <div className={styles.spreadHeaderTop}>
+                <span className={styles.spreadTag}>calendar</span>
+                <div className={styles.spreadNav}>
+                  <button
+                    type="button"
+                    className={styles.spreadIconButton}
+                    onClick={() => setAnchorDate(format(subMonths(parseISO(anchorDate), 1), "yyyy-MM-dd"))}
+                    aria-label="Previous month"
+                  >
+                    <ChevronLeft size={14} />
+                  </button>
+                  <button
+                    type="button"
+                    className={styles.spreadIconButton}
+                    onClick={() => setAnchorDate(format(addMonths(parseISO(anchorDate), 1), "yyyy-MM-dd"))}
+                    aria-label="Next month"
+                  >
+                    <ChevronRight size={14} />
+                  </button>
+                  <button
+                    type="button"
+                    className={styles.spreadTodayButton}
+                    onClick={() => openEntry(todayDate)}
+                  >
+                    <Plus size={13} />
+                    Today
+                  </button>
+                </div>
+              </div>
               <strong>{format(parseISO(anchorDate), "MMMM yyyy")}</strong>
-              <small>Tap any date to open the page.</small>
+              <small className={styles.spreadMeta}>
+                {monthEntries.length} pages and {monthPhotoCount} photos this month. Tap any date to open the page.
+              </small>
             </div>
 
             <div className={styles.spreadCalendar}>
@@ -290,171 +223,6 @@ export function ArchiveHome() {
           </span>
         </div>
       </section>
-
-      {coverOpened ? (
-        <div className={styles.archiveContent}>
-          <section className={styles.archiveCard}>
-            <div className={styles.cardHeader}>
-              <div className={styles.calendarHeading}>
-                <span className={styles.sectionTag}>calendar</span>
-                <div className={styles.monthTitleRow}>
-                  <h3>{format(parseISO(anchorDate), "MMMM yyyy")}</h3>
-                  <button
-                    type="button"
-                    className={styles.subtleTodayButton}
-                    onClick={() => openEntry(todayDate)}
-                  >
-                    <Plus size={14} />
-                    Today
-                  </button>
-                </div>
-                <p className={styles.leadCopy}>
-                  Start from the month view, then move into scrapbook covers only when you need them.
-                </p>
-                <div className={styles.monthMeta}>
-                  <span>{monthEntries.length} pages</span>
-                  <span>{monthPhotoCount} photos</span>
-                  <span>{monthPlanCount} plans</span>
-                  <span>{monthTodoDone}/{monthTodoTotal || 0} done</span>
-                </div>
-              </div>
-
-              <div className={styles.calendarControls}>
-                <div className={styles.monthNav}>
-                  <button
-                    type="button"
-                    className={styles.iconButton}
-                    onClick={() => setAnchorDate(format(subMonths(parseISO(anchorDate), 1), "yyyy-MM-dd"))}
-                    aria-label="Previous month"
-                  >
-                    <ChevronLeft size={16} />
-                  </button>
-                  <button
-                    type="button"
-                    className={styles.iconButton}
-                    onClick={() => setAnchorDate(format(addMonths(parseISO(anchorDate), 1), "yyyy-MM-dd"))}
-                    aria-label="Next month"
-                  >
-                    <ChevronRight size={16} />
-                  </button>
-                </div>
-
-                <div className={styles.viewSwitch}>
-                  <button
-                    type="button"
-                    className={viewMode === "calendar" ? styles.activeToggle : styles.toggle}
-                    onClick={() => setViewMode("calendar")}
-                    aria-label="Calendar view"
-                  >
-                    <CalendarRange size={16} />
-                    <span>Calendar</span>
-                  </button>
-                  <button
-                    type="button"
-                    className={viewMode === "list" ? styles.activeToggle : styles.toggle}
-                    onClick={() => setViewMode("list")}
-                    aria-label="List view"
-                  >
-                    <List size={16} />
-                    <span>List</span>
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            <div className={styles.calendarPaper}>
-              {viewMode === "calendar" ? (
-                <div className={styles.calendarGrid}>
-                  {weekdayLabels.map((day) => (
-                    <span key={day} className={styles.weekday}>
-                      {day}
-                    </span>
-                  ))}
-
-                  {weeks.flat().map((day) => {
-                    const entry = entriesByDate.get(day.date);
-                    const mood = entry?.mood ? moodStampMap[entry.mood] : null;
-
-                    return (
-                      <button
-                        key={day.date}
-                        className={styles.dayCell}
-                        data-outside={!day.inMonth}
-                        data-today={day.isToday}
-                        data-filled={Boolean(entry)}
-                        onClick={() => openEntry(day.date)}
-                      >
-                        <div className={styles.dayTop}>
-                          <span className={styles.dayNumber}>{day.dayOfMonth}</span>
-                          {mood ? (
-                            <span className={styles.dayMood}>
-                              <ScrapIcon kind={mood.icon} size={14} />
-                            </span>
-                          ) : null}
-                        </div>
-
-                        {entry ? (
-                          <>
-                            <strong>{entry.title}</strong>
-                            <small>{entry.photoCount} photos / {entry.plannerCount} plans</small>
-                          </>
-                        ) : (
-                          <small>New page</small>
-                        )}
-                      </button>
-                    );
-                  })}
-                </div>
-              ) : (
-                <div className={styles.listView}>
-                  {entries.map((entry, index) => (
-                    <button
-                      key={entry.entryDate}
-                      className={styles.entryRow}
-                      style={{ "--row-rotation": `${index % 2 === 0 ? -0.6 : 0.6}deg` } as CSSProperties}
-                      onClick={() => openEntry(entry.entryDate)}
-                    >
-                      <div>
-                        <strong>{format(parseISO(entry.entryDate), "EEEE, MMM d")}</strong>
-                        <p>{entry.title}</p>
-                      </div>
-                      <div className={styles.rowMeta}>
-                        <span>{entry.plannerCount} plans</span>
-                        <span>{entry.photoCount} photos</span>
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          </section>
-
-          <section className={styles.boardSection}>
-            <div className={styles.boardHeader}>
-              <div>
-                <span className={styles.sectionTag}>covers</span>
-                <h3>Recent scrapbook covers</h3>
-                <p>Open any page from a cover-style preview after you check the month.</p>
-              </div>
-            </div>
-
-            <div className={styles.boardGrid}>
-              <button type="button" className={styles.newTile} onClick={() => openEntry(todayDate)}>
-                <span className={styles.newBadge}>Today</span>
-                <div className={styles.newIcon}>
-                  <Plus size={22} />
-                </div>
-                <strong>Create or continue today&apos;s page</strong>
-                <p>Open the daily spread with checklist, timed plans, photos, handwriting, and diary space.</p>
-              </button>
-
-              {boardEntries.map((entry) => (
-                <BoardTile key={entry.entryDate} entry={entry} onOpen={openEntry} />
-              ))}
-            </div>
-          </section>
-        </div>
-      ) : null}
     </div>
   );
 }

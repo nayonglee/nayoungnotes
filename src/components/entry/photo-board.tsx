@@ -20,7 +20,7 @@ import { createPhotoDraftItem, createStickerDraftItem, cyclePresetRotation } fro
 import { getLocalAsset, putLocalAsset } from "@/lib/local/database";
 import { stickerMotif, stickerPresets } from "@/lib/theme";
 import { clamp, createId } from "@/lib/utils";
-import type { PhotoItem, StickerItem } from "@/types/diary";
+import type { PhotoItem, StickerItem, ThemePreset } from "@/types/diary";
 import styles from "@/styles/entry.module.css";
 
 type LayoutPreset = "scatter" | "grid" | "stack" | "strip";
@@ -74,14 +74,25 @@ function stickerKind(stickerId: string): ScrapIconKind {
   return stickerMotif(stickerId) as ScrapIconKind;
 }
 
+type ThemeOption = {
+  id: ThemePreset;
+  label: string;
+  swatch: string;
+  detail: string;
+};
+
 function PhotoCard({
   photo,
+  selected,
+  onSelect,
   onMoveStart,
   onRotate,
   onDelete,
   onCaptionChange
 }: {
   photo: PhotoItem;
+  selected: boolean;
+  onSelect: (id: string) => void;
   onMoveStart: (id: string, event: ReactPointerEvent<HTMLButtonElement>) => void;
   onRotate: (id: string) => void;
   onDelete: (id: string) => void;
@@ -92,26 +103,30 @@ function PhotoCard({
   return (
     <article
       className={styles.photoCard}
+      data-selected={selected}
       style={{
         transform: `translate(${photo.styleConfig.x}px, ${photo.styleConfig.y}px) rotate(${photo.styleConfig.presetRotation}deg)`,
         zIndex: photo.styleConfig.zIndex
       }}
+      onPointerDown={() => onSelect(photo.id)}
     >
-      <div className={styles.photoToolbar}>
-        <button
-          type="button"
-          className={styles.iconAction}
-          onPointerDown={(event) => onMoveStart(photo.id, event)}
-        >
-          <Move size={14} />
-        </button>
-        <button type="button" className={styles.iconAction} onClick={() => onRotate(photo.id)}>
-          <RotateCw size={14} />
-        </button>
-        <button type="button" className={styles.iconAction} onClick={() => onDelete(photo.id)}>
-          <Trash2 size={14} />
-        </button>
-      </div>
+      {selected ? (
+        <div className={styles.photoToolbar}>
+          <button
+            type="button"
+            className={styles.iconAction}
+            onPointerDown={(event) => onMoveStart(photo.id, event)}
+          >
+            <Move size={14} />
+          </button>
+          <button type="button" className={styles.iconAction} onClick={() => onRotate(photo.id)}>
+            <RotateCw size={14} />
+          </button>
+          <button type="button" className={styles.iconAction} onClick={() => onDelete(photo.id)}>
+            <Trash2 size={14} />
+          </button>
+        </div>
+      ) : null}
       <div className={styles.photoFrame}>
         {url ? (
           <NextImage src={url} alt="" fill unoptimized className={styles.photoImage} />
@@ -123,6 +138,7 @@ function PhotoCard({
         minRows={1}
         className={styles.photoCaption}
         value={photo.payload.caption}
+        onFocus={() => onSelect(photo.id)}
         onChange={(event) => onCaptionChange(photo.id, event.target.value)}
         placeholder="Add a caption"
       />
@@ -132,11 +148,15 @@ function PhotoCard({
 
 function StickerCard({
   sticker,
+  selected,
+  onSelect,
   onMoveStart,
   onRotate,
   onDelete
 }: {
   sticker: StickerItem;
+  selected: boolean;
+  onSelect: (id: string) => void;
   onMoveStart: (id: string, event: ReactPointerEvent<HTMLButtonElement>) => void;
   onRotate: (id: string) => void;
   onDelete: (id: string) => void;
@@ -146,28 +166,32 @@ function StickerCard({
   return (
     <article
       className={styles.stickerCard}
+      data-selected={selected}
       style={{
         transform: `translate(${sticker.styleConfig.x}px, ${sticker.styleConfig.y}px) rotate(${sticker.styleConfig.presetRotation}deg)`,
         zIndex: sticker.styleConfig.zIndex,
         "--sticker-tint": sticker.payload.tint
       } as CSSProperties}
       data-motif={motif}
+      onPointerDown={() => onSelect(sticker.id)}
     >
-      <div className={styles.stickerToolbar}>
-        <button
-          type="button"
-          className={styles.iconAction}
-          onPointerDown={(event) => onMoveStart(sticker.id, event)}
-        >
-          <Move size={14} />
-        </button>
-        <button type="button" className={styles.iconAction} onClick={() => onRotate(sticker.id)}>
-          <RotateCw size={14} />
-        </button>
-        <button type="button" className={styles.iconAction} onClick={() => onDelete(sticker.id)}>
-          <X size={14} />
-        </button>
-      </div>
+      {selected ? (
+        <div className={styles.stickerToolbar}>
+          <button
+            type="button"
+            className={styles.iconAction}
+            onPointerDown={(event) => onMoveStart(sticker.id, event)}
+          >
+            <Move size={14} />
+          </button>
+          <button type="button" className={styles.iconAction} onClick={() => onRotate(sticker.id)}>
+            <RotateCw size={14} />
+          </button>
+          <button type="button" className={styles.iconAction} onClick={() => onDelete(sticker.id)}>
+            <X size={14} />
+          </button>
+        </div>
+      ) : null}
       <div className={styles.stickerDecal}>
         <span className={styles.stickerHalo} />
         <span className={styles.stickerMotif}>
@@ -179,19 +203,26 @@ function StickerCard({
 }
 
 export function PhotoBoard({
+  themePreset,
+  themeOptions,
   photos,
   stickers,
+  onThemeChange,
   onPhotosChange,
   onStickersChange
 }: {
+  themePreset: ThemePreset;
+  themeOptions: ThemeOption[];
   photos: PhotoItem[];
   stickers: StickerItem[];
+  onThemeChange: (preset: ThemePreset) => void;
   onPhotosChange: (photos: PhotoItem[]) => void;
   onStickersChange: (stickers: StickerItem[]) => void;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const boardRef = useRef<HTMLDivElement>(null);
   const [layoutPreset, setLayoutPreset] = useState<LayoutPreset>("scatter");
+  const [selectedItem, setSelectedItem] = useState<{ kind: "photo" | "sticker"; id: string } | null>(null);
   const [dragging, setDragging] = useState<{
     kind: "photo" | "sticker";
     id: string;
@@ -205,6 +236,14 @@ export function PhotoBoard({
       ...photos.map((item) => item.styleConfig.zIndex),
       ...stickers.map((item) => item.styleConfig.zIndex)
     ) + 1;
+
+  const selectPhoto = (id: string) => {
+    setSelectedItem({ kind: "photo", id });
+  };
+
+  const selectSticker = (id: string) => {
+    setSelectedItem({ kind: "sticker", id });
+  };
 
   useEffect(() => {
     if (!dragging) return;
@@ -248,6 +287,7 @@ export function PhotoBoard({
     const target = photos.find((item) => item.id === id);
     if (!target || !boardRef.current) return;
     const rect = boardRef.current.getBoundingClientRect();
+    setSelectedItem({ kind: "photo", id });
     onPhotosChange(
       photos.map((photo) =>
         photo.id === id ? { ...photo, styleConfig: { ...photo.styleConfig, zIndex: setNextZ() } } : photo
@@ -265,6 +305,7 @@ export function PhotoBoard({
     const target = stickers.find((item) => item.id === id);
     if (!target || !boardRef.current) return;
     const rect = boardRef.current.getBoundingClientRect();
+    setSelectedItem({ kind: "sticker", id });
     onStickersChange(
       stickers.map((sticker) =>
         sticker.id === id
@@ -376,6 +417,7 @@ export function PhotoBoard({
     }
 
     onPhotosChange([...photos, ...nextItems]);
+    if (nextItems[0]) setSelectedItem({ kind: "photo", id: nextItems[0].id });
     event.target.value = "";
   };
 
@@ -383,27 +425,52 @@ export function PhotoBoard({
     <div className={styles.photoBoardSection}>
       <div className={styles.boardToolbar}>
         <div className={styles.boardToolbarMain}>
-          <button type="button" className={styles.secondaryButton} onClick={() => inputRef.current?.click()}>
-            <ImagePlus size={16} />
-            Add photos
-          </button>
+          <div className={styles.paperStyleRow}>
+            {themeOptions.map((theme) => (
+              <button
+                key={theme.id}
+                type="button"
+                className={themePreset === theme.id ? styles.paperStyleActive : styles.paperStyleChip}
+                onClick={() => onThemeChange(theme.id)}
+                aria-label={theme.label}
+                title={theme.label}
+              >
+                <span
+                  className={styles.paperStyleSwatch}
+                  style={
+                    {
+                      "--paper-swatch": theme.swatch,
+                      "--paper-detail": theme.detail
+                    } as CSSProperties
+                  }
+                />
+              </button>
+            ))}
+          </div>
 
-          <div className={styles.layoutRow}>
-            {layoutPresets.map((layout) => {
-              const Icon = layout.icon;
-              return (
-                <button
-                  key={layout.id}
-                  type="button"
-                  className={layoutPreset === layout.id ? styles.layoutActive : styles.layoutChip}
-                  onClick={() => applyLayout(layout.id)}
-                  aria-label={layout.label}
-                  title={layout.label}
-                >
-                  <Icon size={14} />
-                </button>
-              );
-            })}
+          <div className={styles.boardActionRow}>
+            <button type="button" className={styles.secondaryButton} onClick={() => inputRef.current?.click()}>
+              <ImagePlus size={16} />
+              Add photos
+            </button>
+
+            <div className={styles.layoutRow}>
+              {layoutPresets.map((layout) => {
+                const Icon = layout.icon;
+                return (
+                  <button
+                    key={layout.id}
+                    type="button"
+                    className={layoutPreset === layout.id ? styles.layoutActive : styles.layoutChip}
+                    onClick={() => applyLayout(layout.id)}
+                    aria-label={layout.label}
+                    title={layout.label}
+                  >
+                    <Icon size={14} />
+                  </button>
+                );
+              })}
+            </div>
           </div>
         </div>
 
@@ -415,19 +482,18 @@ export function PhotoBoard({
               className={styles.stickerPicker}
               aria-label={sticker.label}
               title={sticker.label}
-              onClick={() =>
-                onStickersChange([
-                  ...stickers,
-                  createStickerDraftItem({
-                    stickerId: sticker.id,
-                    label: sticker.label,
-                    tint: sticker.tint,
-                    x: 18 + stickers.length * 18,
-                    y: 22 + stickers.length * 14,
-                    rotation: sticker.rotation
-                  })
-                ])
-              }
+              onClick={() => {
+                const created = createStickerDraftItem({
+                  stickerId: sticker.id,
+                  label: sticker.label,
+                  tint: sticker.tint,
+                  x: 18 + stickers.length * 18,
+                  y: 22 + stickers.length * 14,
+                  rotation: sticker.rotation
+                });
+                setSelectedItem({ kind: "sticker", id: created.id });
+                onStickersChange([...stickers, created]);
+              }}
             >
               <span className={styles.stickerPickerIcon}>
                 <ScrapIcon kind={stickerKind(sticker.id)} size={18} />
@@ -438,11 +504,19 @@ export function PhotoBoard({
         <input ref={inputRef} type="file" accept="image/*" multiple hidden onChange={handleFiles} />
       </div>
 
-      <div className={styles.photoBoard} ref={boardRef}>
+      <div
+        className={styles.photoBoard}
+        ref={boardRef}
+        onPointerDown={(event) => {
+          if (event.target === event.currentTarget) setSelectedItem(null);
+        }}
+      >
         {photos.map((photo) => (
           <PhotoCard
             key={photo.id}
             photo={photo}
+            selected={selectedItem?.kind === "photo" && selectedItem.id === photo.id}
+            onSelect={selectPhoto}
             onMoveStart={startPhotoDrag}
             onRotate={(id) =>
               onPhotosChange(
@@ -459,7 +533,10 @@ export function PhotoBoard({
                 )
               )
             }
-            onDelete={(id) => onPhotosChange(photos.filter((item) => item.id !== id))}
+            onDelete={(id) => {
+              if (selectedItem?.kind === "photo" && selectedItem.id === id) setSelectedItem(null);
+              onPhotosChange(photos.filter((item) => item.id !== id));
+            }}
             onCaptionChange={(id, caption) =>
               onPhotosChange(
                 photos.map((item) =>
@@ -474,6 +551,8 @@ export function PhotoBoard({
           <StickerCard
             key={sticker.id}
             sticker={sticker}
+            selected={selectedItem?.kind === "sticker" && selectedItem.id === sticker.id}
+            onSelect={selectSticker}
             onMoveStart={startStickerDrag}
             onRotate={(id) =>
               onStickersChange(
@@ -490,7 +569,10 @@ export function PhotoBoard({
                 )
               )
             }
-            onDelete={(id) => onStickersChange(stickers.filter((item) => item.id !== id))}
+            onDelete={(id) => {
+              if (selectedItem?.kind === "sticker" && selectedItem.id === id) setSelectedItem(null);
+              onStickersChange(stickers.filter((item) => item.id !== id));
+            }}
           />
         ))}
 

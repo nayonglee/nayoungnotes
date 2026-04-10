@@ -14,7 +14,7 @@ export type MoodKey =
   | "dreamy"
   | "gentle";
 
-export type ThemePreset = "petal" | "mint" | "berry";
+export type ThemePreset = "petal" | "mint" | "berry" | "butter" | "lilac" | "sky";
 export type TexturePreset = "paper" | "dot" | "ruled";
 export type BoardTone = "cream" | "mint" | "blush";
 export type PresetRotation = -5 | 0 | 5;
@@ -74,7 +74,7 @@ export interface StickerPayload {
   tint: string;
 }
 
-export type DrawingTool = "pen" | "highlighter";
+export type DrawingTool = "pen" | "highlighter" | "pencil";
 export type DrawingBackground = "plain" | "ruled" | "dot";
 export type StrokePoint = [number, number, number?];
 

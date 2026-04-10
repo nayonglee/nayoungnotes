@@ -15,14 +15,6 @@ function nextHour(value: string) {
   return next;
 }
 
-function formatPlannerTime(value: string) {
-  const [hour, minute] = value.split(":").map(Number);
-  if (Number.isNaN(hour) || Number.isNaN(minute)) return "12:00 PM";
-  const meridiem = hour >= 12 ? "PM" : "AM";
-  const normalizedHour = hour % 12 || 12;
-  return `${normalizedHour}:${String(minute).padStart(2, "0")} ${meridiem}`;
-}
-
 export function TimePlanner({
   blocks,
   onChange
@@ -74,15 +66,13 @@ export function TimePlanner({
               <span className={styles.plannerClock}>
                 <Clock3 size={14} />
               </span>
-              <div className={styles.plannerTimeField}>
-                <span className={styles.plannerTimeBadge}>{formatPlannerTime(block.time)}</span>
-                <input
-                  type="time"
-                  className={styles.timeInput}
-                  value={block.time}
-                  onChange={(event) => updateBlock(block.id, { time: event.target.value })}
-                />
-              </div>
+              <input
+                type="time"
+                className={styles.plannerTimeInput}
+                value={block.time}
+                onChange={(event) => updateBlock(block.id, { time: event.target.value })}
+                aria-label="Plan time"
+              />
             </div>
 
             <input

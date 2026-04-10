@@ -21,27 +21,62 @@ export const themePresets: {
   texture: TexturePreset;
   boardTone: BoardTone;
   description: string;
+  swatch: string;
+  detail: string;
 }[] = [
   {
     id: "petal",
-    label: "Heart Cover",
+    label: "Petal",
     texture: "paper",
     boardTone: "cream",
-    description: "A creamy pink paper page with glossy heart details."
+    description: "Cream paper with soft pink trim.",
+    swatch: "linear-gradient(135deg, #f8d5e4, #fff8fb)",
+    detail: "#f0b6ce"
   },
   {
     id: "mint",
-    label: "Star Mint",
+    label: "Mint",
     texture: "dot",
     boardTone: "mint",
-    description: "A mint dot page made for soft star stickers and notes."
+    description: "Mint dot page for clean scrapbook notes.",
+    swatch: "linear-gradient(135deg, #e4f2d4, #fbfff8)",
+    detail: "#b4cf8a"
   },
   {
     id: "berry",
-    label: "Ribbon Note",
+    label: "Berry",
     texture: "ruled",
     boardTone: "blush",
-    description: "A blush ruled page with a neat ribbon-note feeling."
+    description: "Blush ruled page with ribbon-note energy.",
+    swatch: "linear-gradient(135deg, #ffd9e5, #fff6f8)",
+    detail: "#df91b0"
+  },
+  {
+    id: "butter",
+    label: "Butter",
+    texture: "paper",
+    boardTone: "cream",
+    description: "Warm butter page with mellow sticker highlights.",
+    swatch: "linear-gradient(135deg, #fff1bd, #fffdf4)",
+    detail: "#f2c75d"
+  },
+  {
+    id: "lilac",
+    label: "Lilac",
+    texture: "dot",
+    boardTone: "blush",
+    description: "Powder lilac dots for light scrapbook layering.",
+    swatch: "linear-gradient(135deg, #eadffb, #fffafe)",
+    detail: "#b799e8"
+  },
+  {
+    id: "sky",
+    label: "Sky",
+    texture: "ruled",
+    boardTone: "cream",
+    description: "Pale sky page with a neat planner look.",
+    swatch: "linear-gradient(135deg, #dfeeff, #fbfdff)",
+    detail: "#91b8ef"
   }
 ];
 

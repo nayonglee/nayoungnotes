@@ -5,6 +5,7 @@ import { useMemo, useRef, useState } from "react";
 import {
   Eraser,
   Highlighter,
+  Minus,
   Move,
   PenLine,
   PencilLine,
@@ -27,7 +28,7 @@ import type {
 } from "@/types/diary";
 import styles from "@/styles/entry.module.css";
 
-type ToolMode = "fine" | "gel" | "marker" | "eraser";
+type ToolMode = "fine" | "gel" | "marker" | "pencil" | "eraser";
 type InputPolicy = "stylus" | "all";
 type InteractionMode = "draw" | "pan";
 
@@ -38,7 +39,7 @@ const toolMeta: Record<
   {
     label: string;
     icon: typeof PenLine;
-    drawTool: "pen" | "highlighter" | "eraser";
+    drawTool: "pen" | "highlighter" | "pencil" | "eraser";
     defaultWidth: number;
     opacity: number;
     widths: number[];
@@ -68,6 +69,14 @@ const toolMeta: Record<
     opacity: 0.28,
     widths: [4.5, 6, 8.5]
   },
+  pencil: {
+    label: "Pencil",
+    icon: PencilLine,
+    drawTool: "pencil",
+    defaultWidth: 2.2,
+    opacity: 0.42,
+    widths: [1.6, 2.2, 3.2]
+  },
   eraser: {
     label: "Eraser",
     icon: Eraser,
@@ -87,6 +96,7 @@ const penPresets: Array<{
   { id: "ink", label: "Ink", tool: "fine", color: "#43383d" },
   { id: "pink-gel", label: "Pink gel", tool: "gel", color: "#e49cbc" },
   { id: "mint-marker", label: "Mint marker", tool: "marker", color: "#b9cf84" },
+  { id: "graphite", label: "Graphite", tool: "pencil", color: "#5c5458" },
   { id: "blue-pen", label: "Blue pen", tool: "gel", color: "#8eb7e8" }
 ];
 
@@ -128,6 +138,7 @@ export function HandwritingPad({
   const [activePreset, setActivePreset] = useState("ink");
   const [inputPolicy, setInputPolicy] = useState<InputPolicy>("stylus");
   const [interactionMode, setInteractionMode] = useState<InteractionMode>("draw");
+  const [straightLine, setStraightLine] = useState(false);
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [redoStack, setRedoStack] = useState<DrawingStroke[][]>([]);
@@ -240,8 +251,8 @@ export function HandwritingPad({
       return;
     }
 
-    currentStroke.current = [point];
-    setLivePoints([point]);
+    currentStroke.current = straightLine ? [point, point] : [point];
+    setLivePoints(straightLine ? [point, point] : [point]);
   };
 
   const handlePointerMove = (event: ReactPointerEvent<SVGSVGElement>) => {
@@ -267,7 +278,8 @@ export function HandwritingPad({
     }
 
     if (event.buttons !== 1 || currentStroke.current.length === 0) return;
-    const nextPoints = [...currentStroke.current, getPoint(event)];
+    const point = getPoint(event);
+    const nextPoints = straightLine ? [currentStroke.current[0], point] : [...currentStroke.current, point];
     currentStroke.current = nextPoints;
     setLivePoints(nextPoints);
   };
@@ -283,6 +295,9 @@ export function HandwritingPad({
     }
 
     if (!activeSheet || currentStroke.current.length === 0) return;
+    if (straightLine && tool !== "eraser") {
+      currentStroke.current = [currentStroke.current[0], getPoint(event)];
+    }
 
     const meta = toolMeta[tool];
     const nextStroke: DrawingStroke = {
@@ -324,6 +339,7 @@ export function HandwritingPad({
     setTool(nextTool);
     setWidth(toolMeta[nextTool].defaultWidth);
     setActivePreset("");
+    if (nextTool === "eraser") setStraightLine(false);
   };
 
   const selectPreset = (presetId: string) => {
@@ -355,7 +371,12 @@ export function HandwritingPad({
     livePoints.length > 0 && tool !== "eraser"
       ? ({
           id: "live-stroke",
-          tool: toolMeta[tool].drawTool === "highlighter" ? "highlighter" : "pen",
+          tool:
+            toolMeta[tool].drawTool === "highlighter"
+              ? "highlighter"
+              : toolMeta[tool].drawTool === "pencil"
+                ? "pencil"
+                : "pen",
           color,
           width,
           opacity: toolMeta[tool].opacity,
@@ -527,6 +548,15 @@ export function HandwritingPad({
               <Move size={15} />
               Pan
             </button>
+            <button
+              type="button"
+              className={straightLine ? styles.policyActive : styles.policyChip}
+              onClick={() => setStraightLine((current) => !current)}
+              disabled={tool === "eraser"}
+            >
+              <Minus size={15} />
+              Line
+            </button>
           </div>
 
           <div className={styles.inlineButtons}>
@@ -593,8 +623,12 @@ export function HandwritingPad({
         </div>
         <div className={styles.canvasHint}>
           {inputPolicy === "stylus"
-            ? "Touch pans the page first, while the pen keeps drawing."
-            : "Both touch and pen can draw on the page."}
+            ? straightLine
+              ? "Line mode is on. Touch still pans first, and the pen draws straight strokes."
+              : "Touch pans the page first, while the pen keeps drawing."
+            : straightLine
+              ? "Line mode is on for pen, pencil, and highlighter."
+              : "Both touch and pen can draw on the page."}
         </div>
       </div>
     </div>
