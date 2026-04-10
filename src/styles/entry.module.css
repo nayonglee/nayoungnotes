@@ -86,10 +86,15 @@
 .moodRow,
 .themeRow,
 .boardToolbar,
+.boardToolbarMain,
+.layoutRow,
 .stickerRow,
 .toolRow,
 .presetRow,
-.canvasControlRow {
+.canvasControlRow,
+.sheetRow,
+.sheetTabs,
+.sheetActions {
   display: flex;
   flex-wrap: wrap;
   gap: 0.7rem;
@@ -107,6 +112,8 @@
 .themeChip,
 .themeActive,
 .stickerPicker,
+.layoutChip,
+.layoutActive,
 .iconAction,
 .toolChip,
 .toolActive,
@@ -115,7 +122,9 @@
 .presetChip,
 .presetActive,
 .policyChip,
-.policyActive {
+.policyActive,
+.sheetTab,
+.sheetTabActive {
   border: none;
 }
 
@@ -127,6 +136,8 @@
 .themeChip,
 .themeActive,
 .stickerPicker,
+.layoutChip,
+.layoutActive,
 .toolChip,
 .toolActive,
 .widthChip,
@@ -134,7 +145,9 @@
 .presetChip,
 .presetActive,
 .policyChip,
-.policyActive {
+.policyActive,
+.sheetTab,
+.sheetTabActive {
   border-radius: 999px;
   padding: 0.72rem 0.95rem;
 }
@@ -145,7 +158,9 @@
 .toolActive,
 .widthActive,
 .presetActive,
-.policyActive {
+.policyActive,
+.layoutActive,
+.sheetTabActive {
   background: linear-gradient(135deg, rgba(255, 208, 226, 1), rgba(227, 243, 204, 0.96));
   box-shadow:
     var(--shadow-card),
@@ -156,11 +171,13 @@
 .moodChip,
 .themeChip,
 .stickerPicker,
+.layoutChip,
 .addButton,
 .toolChip,
 .widthChip,
 .presetChip,
-.policyChip {
+.policyChip,
+.sheetTab {
   background: rgba(255, 255, 255, 0.94);
   box-shadow: inset 0 0 0 1px rgba(140, 116, 126, 0.12);
 }
@@ -325,7 +342,25 @@
 }
 
 .boardToolbar {
+  display: grid;
   align-items: center;
+  gap: 0.8rem;
+}
+
+.boardToolbarMain {
+  align-items: center;
+  justify-content: space-between;
+}
+
+.layoutRow {
+  align-items: center;
+}
+
+.layoutChip,
+.layoutActive {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.42rem;
 }
 
 .photoBoard {
@@ -350,6 +385,60 @@
     linear-gradient(90deg, rgba(140, 116, 126, 0.03) 1px, transparent 1px);
   background-size: 24px 24px;
   pointer-events: none;
+}
+
+.photoBoard::after {
+  content: "";
+  position: absolute;
+  right: 1.15rem;
+  top: 1rem;
+  width: 76px;
+  height: 24px;
+  border-radius: 999px;
+  background: rgba(225, 243, 203, 0.48);
+  box-shadow: inset 0 0 0 1px rgba(140, 116, 126, 0.08);
+  transform: rotate(8deg);
+  pointer-events: none;
+}
+
+.boardPinNote {
+  position: absolute;
+  left: 1rem;
+  top: 1rem;
+  max-width: 220px;
+  border-radius: 20px;
+  padding: 0.88rem 0.95rem;
+  background: rgba(255, 252, 253, 0.92);
+  box-shadow:
+    0 14px 30px rgba(177, 151, 164, 0.16),
+    inset 0 0 0 1px rgba(140, 116, 126, 0.08);
+  z-index: 1;
+}
+
+.boardPinNote::before {
+  content: "";
+  position: absolute;
+  top: -10px;
+  left: 22px;
+  width: 58px;
+  height: 18px;
+  border-radius: 999px;
+  background: rgba(255, 230, 178, 0.84);
+  transform: rotate(-8deg);
+  box-shadow: inset 0 0 0 1px rgba(170, 141, 108, 0.1);
+}
+
+.boardPinNote strong {
+  display: block;
+  font-size: 0.88rem;
+  letter-spacing: 0.04em;
+}
+
+.boardPinNote p {
+  margin: 0.3rem 0 0;
+  color: var(--muted);
+  font-size: 0.84rem;
+  line-height: 1.55;
 }
 
 .photoCard,
@@ -493,6 +582,40 @@
   gap: 0.8rem;
 }
 
+.sheetRow {
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.sheetTabs {
+  flex: 1;
+}
+
+.sheetTab,
+.sheetTabActive {
+  display: grid;
+  gap: 0.1rem;
+  min-width: 110px;
+  text-align: left;
+  border-radius: 18px 18px 12px 12px;
+  padding: 0.7rem 0.9rem 0.6rem;
+}
+
+.sheetTab span,
+.sheetTabActive span {
+  font-weight: 700;
+}
+
+.sheetTab small,
+.sheetTabActive small {
+  color: var(--muted);
+  font-size: 0.76rem;
+}
+
+.sheetActions {
+  justify-content: flex-end;
+}
+
 .handwritingToolbar {
   display: grid;
   gap: 0.7rem;
@@ -633,8 +756,14 @@
     width: 170px;
   }
 
+  .boardToolbarMain,
   .canvasControlRow {
+    flex-direction: column;
     align-items: stretch;
+  }
+
+  .boardPinNote {
+    max-width: calc(100% - 2rem);
   }
 
   .canvas {

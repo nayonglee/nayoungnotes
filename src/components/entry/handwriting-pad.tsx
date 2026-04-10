@@ -1,21 +1,30 @@
 "use client";
 
 import type { PointerEvent as ReactPointerEvent } from "react";
-import { useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import {
   Eraser,
   Highlighter,
   Move,
   PenLine,
   PencilLine,
+  Plus,
   RotateCcw,
   RotateCw,
+  X,
   ZoomIn,
   ZoomOut
 } from "lucide-react";
+import { createDrawingSheet } from "@/lib/entry";
 import { eraseStrokesNearPoint, strokeToSvgPath } from "@/lib/drawing";
 import { clamp, createId } from "@/lib/utils";
-import type { DrawingBackground, DrawingItem, DrawingStroke, StrokePoint } from "@/types/diary";
+import type {
+  DrawingBackground,
+  DrawingItem,
+  DrawingSheet,
+  DrawingStroke,
+  StrokePoint
+} from "@/types/diary";
 import styles from "@/styles/entry.module.css";
 
 type ToolMode = "fine" | "gel" | "marker" | "eraser";
@@ -81,6 +90,30 @@ const penPresets: Array<{
   { id: "blue-pen", label: "블루 펜", tool: "gel", color: "#8eb7e8" }
 ];
 
+const backgrounds: Array<{ id: DrawingBackground; label: string }> = [
+  { id: "plain", label: "무지" },
+  { id: "ruled", label: "라인" },
+  { id: "dot", label: "도트" }
+];
+
+function normalizeSheets(drawing: DrawingItem) {
+  const fallbackSheet: DrawingSheet = {
+    id: drawing.payload.activeSheetId || `${drawing.id}_sheet_1`,
+    title: "시트 1",
+    background: "dot",
+    strokes: []
+  };
+  const sheets = drawing.payload.sheets.length > 0 ? drawing.payload.sheets : [fallbackSheet];
+  const activeSheetId = sheets.some((sheet) => sheet.id === drawing.payload.activeSheetId)
+    ? drawing.payload.activeSheetId
+    : sheets[0].id;
+
+  return {
+    activeSheetId,
+    sheets
+  };
+}
+
 export function HandwritingPad({
   drawing,
   onChange
@@ -88,6 +121,7 @@ export function HandwritingPad({
   drawing: DrawingItem;
   onChange: (drawing: DrawingItem) => void;
 }) {
+  const normalized = useMemo(() => normalizeSheets(drawing), [drawing]);
   const [tool, setTool] = useState<ToolMode>("gel");
   const [color, setColor] = useState("#43383d");
   const [width, setWidth] = useState(toolMeta.gel.defaultWidth);
@@ -96,8 +130,6 @@ export function HandwritingPad({
   const [interactionMode, setInteractionMode] = useState<InteractionMode>("draw");
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
-  const [strokes, setStrokes] = useState(drawing.payload.strokes);
-  const [background, setBackground] = useState<DrawingBackground>(drawing.payload.background);
   const [redoStack, setRedoStack] = useState<DrawingStroke[][]>([]);
   const [livePoints, setLivePoints] = useState<StrokePoint[]>([]);
   const [undoCount, setUndoCount] = useState(0);
@@ -106,6 +138,13 @@ export function HandwritingPad({
   const panOriginRef = useRef<{ x: number; y: number; startX: number; startY: number } | null>(null);
   const stageRef = useRef<SVGSVGElement>(null);
   const viewportRef = useRef<HTMLDivElement>(null);
+  const { activeSheetId, sheets } = normalized;
+  const activeSheet = useMemo(
+    () => sheets.find((sheet) => sheet.id === activeSheetId) ?? sheets[0],
+    [activeSheetId, sheets]
+  );
+  const strokes = activeSheet?.strokes ?? [];
+  const background = activeSheet?.background ?? "dot";
 
   const clampPanForZoom = (nextPan: { x: number; y: number }, nextZoom = zoom) => {
     const rect = viewportRef.current?.getBoundingClientRect();
@@ -132,15 +171,35 @@ export function HandwritingPad({
     setUndoCount(historyRef.current.length);
   };
 
-  const emitChange = (nextStrokes: DrawingStroke[], nextBackground = background) => {
+  const emitSheets = (nextSheets: DrawingSheet[], nextActiveSheetId = activeSheetId) => {
     onChange({
       ...drawing,
       payload: {
-        background: nextBackground,
-        strokes: nextStrokes
+        activeSheetId: nextActiveSheetId,
+        sheets: nextSheets
       },
       updatedAt: new Date().toISOString()
     });
+  };
+
+  const resetSheetSession = () => {
+    historyRef.current = [];
+    setUndoCount(0);
+    setRedoStack([]);
+    currentStroke.current = [];
+    setLivePoints([]);
+  };
+
+  const commitSheets = (nextSheets: DrawingSheet[], nextActiveSheetId = activeSheetId) => {
+    emitSheets(nextSheets, nextActiveSheetId);
+  };
+
+  const updateActiveSheet = (updater: (sheet: DrawingSheet) => DrawingSheet) => {
+    if (!activeSheet) return;
+    const nextSheets = sheets.map((sheet) =>
+      sheet.id === activeSheet.id ? updater(sheet) : sheet
+    );
+    commitSheets(nextSheets, activeSheet.id);
   };
 
   const getPoint = (event: ReactPointerEvent<SVGSVGElement>): StrokePoint => {
@@ -160,6 +219,7 @@ export function HandwritingPad({
   };
 
   const handlePointerDown = (event: ReactPointerEvent<SVGSVGElement>) => {
+    if (!activeSheet) return;
     event.preventDefault();
     event.currentTarget.setPointerCapture(event.pointerId);
 
@@ -176,8 +236,7 @@ export function HandwritingPad({
 
     if (tool === "eraser") {
       const erased = eraseStrokesNearPoint(strokes, point, width);
-      setStrokes(erased);
-      emitChange(erased);
+      updateActiveSheet((sheet) => ({ ...sheet, strokes: erased }));
       return;
     }
 
@@ -186,6 +245,8 @@ export function HandwritingPad({
   };
 
   const handlePointerMove = (event: ReactPointerEvent<SVGSVGElement>) => {
+    if (!activeSheet) return;
+
     if (panOriginRef.current) {
       const dx = event.clientX - panOriginRef.current.startX;
       const dy = event.clientY - panOriginRef.current.startY;
@@ -201,8 +262,7 @@ export function HandwritingPad({
     if (tool === "eraser" && event.buttons === 1) {
       const point = getPoint(event);
       const erased = eraseStrokesNearPoint(strokes, point, width);
-      setStrokes(erased);
-      emitChange(erased);
+      updateActiveSheet((sheet) => ({ ...sheet, strokes: erased }));
       return;
     }
 
@@ -222,7 +282,7 @@ export function HandwritingPad({
       return;
     }
 
-    if (currentStroke.current.length === 0) return;
+    if (!activeSheet || currentStroke.current.length === 0) return;
 
     const meta = toolMeta[tool];
     const nextStroke: DrawingStroke = {
@@ -234,31 +294,30 @@ export function HandwritingPad({
       points: currentStroke.current
     };
     const nextStrokes = [...strokes, nextStroke];
-    setStrokes(nextStrokes);
-    emitChange(nextStrokes);
+    updateActiveSheet((sheet) => ({ ...sheet, strokes: nextStrokes }));
     currentStroke.current = [];
     setLivePoints([]);
   };
 
   const undo = () => {
+    if (!activeSheet) return;
     const previous = historyRef.current.at(-1);
     if (!previous) return;
 
     setRedoStack((stack) => [...stack, strokes]);
     historyRef.current = historyRef.current.slice(0, -1);
     setUndoCount(historyRef.current.length);
-    setStrokes(previous);
-    emitChange(previous);
+    updateActiveSheet((sheet) => ({ ...sheet, strokes: previous }));
   };
 
   const redo = () => {
+    if (!activeSheet) return;
     const next = redoStack.at(-1);
     if (!next) return;
 
     pushHistory(strokes);
     setRedoStack((stack) => stack.slice(0, -1));
-    setStrokes(next);
-    emitChange(next);
+    updateActiveSheet((sheet) => ({ ...sheet, strokes: next }));
   };
 
   const selectTool = (nextTool: ToolMode) => {
@@ -276,6 +335,22 @@ export function HandwritingPad({
     setActivePreset(preset.id);
   };
 
+  const addSheet = () => {
+    const nextSheet = createDrawingSheet(sheets.length, background, `시트 ${sheets.length + 1}`);
+    resetSheetSession();
+    commitSheets([...sheets, nextSheet], nextSheet.id);
+  };
+
+  const removeSheet = () => {
+    if (!activeSheet || sheets.length <= 1) return;
+    const currentIndex = sheets.findIndex((sheet) => sheet.id === activeSheet.id);
+    const nextSheets = sheets.filter((sheet) => sheet.id !== activeSheet.id);
+    const fallbackSheet = nextSheets[Math.max(0, currentIndex - 1)] ?? nextSheets[0];
+    if (!fallbackSheet) return;
+    resetSheetSession();
+    commitSheets(nextSheets, fallbackSheet.id);
+  };
+
   const liveStroke =
     livePoints.length > 0 && tool !== "eraser"
       ? ({
@@ -291,6 +366,47 @@ export function HandwritingPad({
   return (
     <div className={styles.handwritingShell}>
       <div className={styles.handwritingToolbar}>
+        <div className={styles.sheetRow}>
+          <div className={styles.sheetTabs}>
+            {sheets.map((sheet, index) => (
+              <button
+                key={sheet.id}
+                type="button"
+                className={sheet.id === activeSheetId ? styles.sheetTabActive : styles.sheetTab}
+                onClick={() => {
+                  if (sheet.id === activeSheetId) return;
+                  resetSheetSession();
+                  commitSheets(sheets, sheet.id);
+                }}
+              >
+                <span>{sheet.title || `시트 ${index + 1}`}</span>
+                <small>
+                  {sheet.background === "plain"
+                    ? "무지"
+                    : sheet.background === "ruled"
+                      ? "라인"
+                      : "도트"}
+                </small>
+              </button>
+            ))}
+          </div>
+
+          <div className={styles.sheetActions}>
+            <button type="button" className={styles.iconAction} onClick={addSheet} aria-label="새 시트">
+              <Plus size={15} />
+            </button>
+            <button
+              type="button"
+              className={styles.iconAction}
+              onClick={removeSheet}
+              disabled={sheets.length <= 1}
+              aria-label="현재 시트 삭제"
+            >
+              <X size={15} />
+            </button>
+          </div>
+        </div>
+
         <div className={styles.presetRow}>
           {penPresets.map((preset) => (
             <button
@@ -358,10 +474,20 @@ export function HandwritingPad({
               <span style={{ width: Math.max(4, value * 1.6), height: Math.max(4, value * 1.6) }} />
             </button>
           ))}
-          <button type="button" className={styles.iconAction} onClick={undo} disabled={undoCount === 0}>
+          <button
+            type="button"
+            className={styles.iconAction}
+            onClick={undo}
+            disabled={undoCount === 0}
+          >
             <RotateCcw size={15} />
           </button>
-          <button type="button" className={styles.iconAction} onClick={redo} disabled={redoStack.length === 0}>
+          <button
+            type="button"
+            className={styles.iconAction}
+            onClick={redo}
+            disabled={redoStack.length === 0}
+          >
             <RotateCw size={15} />
           </button>
         </div>
@@ -425,17 +551,14 @@ export function HandwritingPad({
         </div>
 
         <div className={styles.inlineButtons}>
-          {(["plain", "ruled", "dot"] as const).map((option) => (
+          {backgrounds.map((option) => (
             <button
-              key={option}
+              key={option.id}
               type="button"
-              className={background === option ? styles.primaryButton : styles.secondaryButton}
-              onClick={() => {
-                setBackground(option);
-                emitChange(strokes, option);
-              }}
+              className={background === option.id ? styles.primaryButton : styles.secondaryButton}
+              onClick={() => updateActiveSheet((sheet) => ({ ...sheet, background: option.id }))}
             >
-              {option === "plain" ? "무지" : option === "ruled" ? "라인" : "도트"}
+              {option.label}
             </button>
           ))}
         </div>

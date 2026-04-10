@@ -1,7 +1,9 @@
 import { createId } from "@/lib/utils";
 import type {
   DiaryEntryRecord,
+  DrawingBackground,
   DrawingItem,
+  DrawingSheet,
   EntryOverview,
   PersistedEntryItemRow,
   PhotoItem,
@@ -22,8 +24,22 @@ function baseStyle(rotation: PresetRotation = 0) {
   return { x: 0, y: 0, zIndex: 1, presetRotation: rotation };
 }
 
+export function createDrawingSheet(
+  index = 0,
+  background: DrawingBackground = "dot",
+  title?: string
+): DrawingSheet {
+  return {
+    id: createId("sheet"),
+    title: title ?? `시트 ${index + 1}`,
+    background,
+    strokes: []
+  };
+}
+
 export function createBlankEntry(entryDate: string, viewer?: Viewer | null): DiaryEntryRecord {
   const now = new Date().toISOString();
+  const firstSheet = createDrawingSheet(0);
   return {
     id: createId("entry"),
     userId: viewer?.id,
@@ -56,7 +72,10 @@ export function createBlankEntry(entryDate: string, viewer?: Viewer | null): Dia
       id: createId("drawing"),
       itemType: "drawing",
       orderIndex: 99,
-      payload: { background: "dot", strokes: [] },
+      payload: {
+        activeSheetId: firstSheet.id,
+        sheets: [firstSheet]
+      },
       styleConfig: baseStyle(),
       updatedAt: now
     }

@@ -4,13 +4,36 @@ import type { ChangeEvent, PointerEvent as ReactPointerEvent } from "react";
 import { useEffect, useRef, useState } from "react";
 import NextImage from "next/image";
 import TextareaAutosize from "react-textarea-autosize";
-import { ImagePlus, Move, RotateCw, Sticker, Trash2, X } from "lucide-react";
+import {
+  Grid2X2,
+  ImagePlus,
+  Layers3,
+  Move,
+  RotateCw,
+  Sparkles,
+  Sticker,
+  Trash2,
+  X
+} from "lucide-react";
 import { createPhotoDraftItem, createStickerDraftItem, cyclePresetRotation } from "@/lib/entry";
 import { getLocalAsset, putLocalAsset } from "@/lib/local/database";
 import { stickerPresets } from "@/lib/theme";
 import { clamp, createId } from "@/lib/utils";
 import type { PhotoItem, StickerItem } from "@/types/diary";
 import styles from "@/styles/entry.module.css";
+
+type LayoutPreset = "scatter" | "grid" | "stack" | "strip";
+
+const layoutPresets: Array<{
+  id: LayoutPreset;
+  label: string;
+  icon: typeof Sparkles;
+}> = [
+  { id: "scatter", label: "흩뿌리기", icon: Sparkles },
+  { id: "grid", label: "정리형", icon: Grid2X2 },
+  { id: "stack", label: "겹치기", icon: Layers3 },
+  { id: "strip", label: "필름줄", icon: Sticker }
+];
 
 async function measureImage(file: File) {
   if ("createImageBitmap" in window) {
@@ -49,13 +72,15 @@ function useLocalAssetUrl(assetId?: string, remoteUrl?: string) {
 function stickerGlyph(stickerId: string) {
   switch (stickerId) {
     case "starry":
-      return "★";
+      return "✦";
     case "strawberry":
       return "♡";
-    case "ribbon":
-      return "✦";
     case "flower":
       return "✿";
+    case "ribbon":
+      return "❀";
+    case "mushroom":
+      return "◌";
     default:
       return "◎";
   }
@@ -85,7 +110,11 @@ function PhotoCard({
       }}
     >
       <div className={styles.photoToolbar}>
-        <button type="button" className={styles.iconAction} onPointerDown={(event) => onMoveStart(photo.id, event)}>
+        <button
+          type="button"
+          className={styles.iconAction}
+          onPointerDown={(event) => onMoveStart(photo.id, event)}
+        >
           <Move size={14} />
         </button>
         <button type="button" className={styles.iconAction} onClick={() => onRotate(photo.id)}>
@@ -96,14 +125,18 @@ function PhotoCard({
         </button>
       </div>
       <div className={styles.photoFrame}>
-        {url ? <NextImage src={url} alt="" fill unoptimized className={styles.photoImage} /> : <div className={styles.photoPlaceholder} />}
+        {url ? (
+          <NextImage src={url} alt="" fill unoptimized className={styles.photoImage} />
+        ) : (
+          <div className={styles.photoPlaceholder} />
+        )}
       </div>
       <TextareaAutosize
         minRows={1}
         className={styles.photoCaption}
         value={photo.payload.caption}
         onChange={(event) => onCaptionChange(photo.id, event.target.value)}
-        placeholder="짧은 캡션"
+        placeholder="짧은 메모"
       />
     </article>
   );
@@ -130,7 +163,11 @@ function StickerCard({
       }}
     >
       <div className={styles.stickerToolbar}>
-        <button type="button" className={styles.iconAction} onPointerDown={(event) => onMoveStart(sticker.id, event)}>
+        <button
+          type="button"
+          className={styles.iconAction}
+          onPointerDown={(event) => onMoveStart(sticker.id, event)}
+        >
           <Move size={14} />
         </button>
         <button type="button" className={styles.iconAction} onClick={() => onRotate(sticker.id)}>
@@ -159,6 +196,7 @@ export function PhotoBoard({
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const boardRef = useRef<HTMLDivElement>(null);
+  const [layoutPreset, setLayoutPreset] = useState<LayoutPreset>("scatter");
   const [dragging, setDragging] = useState<{
     kind: "photo" | "sticker";
     id: string;
@@ -181,7 +219,7 @@ export function PhotoBoard({
       if (!rect) return;
 
       const x = clamp(event.clientX - rect.left - dragging.offsetX, 8, rect.width - 180);
-      const y = clamp(event.clientY - rect.top - dragging.offsetY, 8, rect.height - 180);
+      const y = clamp(event.clientY - rect.top - dragging.offsetY, 8, rect.height - 210);
 
       if (dragging.kind === "photo") {
         onPhotosChange(
@@ -245,6 +283,75 @@ export function PhotoBoard({
     });
   };
 
+  const applyLayout = (preset: LayoutPreset) => {
+    setLayoutPreset(preset);
+    if (photos.length === 0) return;
+
+    const rect = boardRef.current?.getBoundingClientRect();
+    const boardWidth = rect?.width ?? 760;
+    const boardHeight = rect?.height ?? 420;
+    const cardWidth = boardWidth < 560 ? 152 : 188;
+    const cardHeight = cardWidth + 86;
+    const safeWidth = Math.max(boardWidth - cardWidth - 16, 8);
+    const safeHeight = Math.max(boardHeight - cardHeight - 18, 8);
+
+    const nextPhotos = photos.map((photo, index) => {
+      let x = photo.styleConfig.x;
+      let y = photo.styleConfig.y;
+      let presetRotation = photo.styleConfig.presetRotation;
+
+      if (preset === "scatter") {
+        const pattern = [
+          [0.05, 0.08, -5],
+          [0.58, 0.04, 5],
+          [0.14, 0.47, -5],
+          [0.62, 0.46, 5],
+          [0.36, 0.22, 0],
+          [0.4, 0.58, -5]
+        ] as const;
+        const [tx, ty, rotation] = pattern[index % pattern.length];
+        x = 8 + safeWidth * tx;
+        y = 10 + safeHeight * ty;
+        presetRotation = rotation;
+      } else if (preset === "grid") {
+        const columns = Math.max(1, Math.min(boardWidth < 620 ? 2 : 3, photos.length));
+        const gap = 16;
+        const totalWidth = columns * cardWidth + (columns - 1) * gap;
+        const startX = Math.max(8, (boardWidth - totalWidth) / 2);
+        const row = Math.floor(index / columns);
+        const column = index % columns;
+        x = startX + column * (cardWidth + gap);
+        y = 18 + row * (cardHeight * 0.78);
+        presetRotation = row % 2 === 0 ? -5 : 0;
+      } else if (preset === "stack") {
+        const middleX = boardWidth / 2 - cardWidth / 2;
+        const baseY = 34;
+        const offsetX = [-32, -10, 14, 32][index % 4];
+        x = middleX + offsetX;
+        y = baseY + index * 22;
+        presetRotation = ([-5, 0, 5, -5][index % 4] ?? 0) as -5 | 0 | 5;
+      } else {
+        const step = Math.max(54, Math.min(cardWidth + 12, (boardWidth - cardWidth - 24) / Math.max(1, photos.length - 1)));
+        x = 12 + step * index;
+        y = 44 + (index % 2 === 0 ? 0 : 44);
+        presetRotation = index % 2 === 0 ? -5 : 5;
+      }
+
+      return {
+        ...photo,
+        styleConfig: {
+          ...photo.styleConfig,
+          x: clamp(x, 8, boardWidth - cardWidth - 8),
+          y: clamp(y, 8, boardHeight - cardHeight - 10),
+          zIndex: index + 2,
+          presetRotation
+        }
+      };
+    });
+
+    onPhotosChange(nextPhotos);
+  };
+
   const handleFiles = async (event: ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files ?? []);
     if (files.length === 0) return;
@@ -278,10 +385,30 @@ export function PhotoBoard({
   return (
     <div className={styles.photoBoardSection}>
       <div className={styles.boardToolbar}>
-        <button type="button" className={styles.primaryButton} onClick={() => inputRef.current?.click()}>
-          <ImagePlus size={16} />
-          사진 올리기
-        </button>
+        <div className={styles.boardToolbarMain}>
+          <button type="button" className={styles.primaryButton} onClick={() => inputRef.current?.click()}>
+            <ImagePlus size={16} />
+            사진 올리기
+          </button>
+
+          <div className={styles.layoutRow}>
+            {layoutPresets.map((layout) => {
+              const Icon = layout.icon;
+              return (
+                <button
+                  key={layout.id}
+                  type="button"
+                  className={layoutPreset === layout.id ? styles.layoutActive : styles.layoutChip}
+                  onClick={() => applyLayout(layout.id)}
+                >
+                  <Icon size={14} />
+                  {layout.label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
         <div className={styles.stickerRow}>
           {stickerPresets.map((sticker) => (
             <button
@@ -302,7 +429,6 @@ export function PhotoBoard({
                 ])
               }
             >
-              <Sticker size={14} />
               <span>{stickerGlyph(sticker.id)}</span>
               {sticker.label}
             </button>
@@ -312,6 +438,11 @@ export function PhotoBoard({
       </div>
 
       <div className={styles.photoBoard} ref={boardRef}>
+        <div className={styles.boardPinNote}>
+          <strong>사진 보드</strong>
+          <p>먼저 템플릿으로 정리하고, 필요한 카드만 살짝 움직여서 마감하면 됩니다.</p>
+        </div>
+
         {photos.map((photo) => (
           <PhotoCard
             key={photo.id}

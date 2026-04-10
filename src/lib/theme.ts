@@ -53,7 +53,7 @@ export const stickerPresets: {
   rotation: PresetRotation;
 }[] = [
   { id: "starry", label: "별", motif: "star", tint: "#ffe7f1", rotation: -5 },
-  { id: "mushroom", label: "캔디", motif: "swirl", tint: "#ffe7de", rotation: 5 },
+  { id: "mushroom", label: "소용돌이", motif: "swirl", tint: "#ffe7de", rotation: 5 },
   { id: "strawberry", label: "하트", motif: "heart", tint: "#ffd6e6", rotation: -5 },
   { id: "flower", label: "꽃", motif: "flower", tint: "#eaf5d8", rotation: 0 },
   { id: "ribbon", label: "리본", motif: "ribbon", tint: "#ffeef5", rotation: 5 }

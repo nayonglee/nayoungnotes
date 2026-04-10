@@ -17,12 +17,12 @@ import {
 } from "lucide-react";
 import { buildCalendarMatrix, todayKey } from "@/lib/date";
 import { loadEntryOverviews } from "@/lib/local/sync";
-import type { EntryOverview, MoodKey, ThemePreset } from "@/types/diary";
 import { useAuthStore } from "@/store/auth-store";
+import type { EntryOverview, MoodKey, ThemePreset } from "@/types/diary";
 import styles from "@/styles/archive.module.css";
 
 const weekdayLabels = ["일", "월", "화", "수", "목", "금", "토"];
-const rotations = ["-3deg", "2deg", "-2deg", "3deg"];
+const cardRotations = ["-3deg", "2deg", "-2deg", "3deg"];
 const EMPTY_ENTRIES: EntryOverview[] = [];
 
 const moodStampMap: Record<MoodKey, { glyph: string; label: string }> = {
@@ -44,7 +44,7 @@ function themeLabel(theme: ThemePreset) {
   return "petal";
 }
 
-function ScrapCard({
+function ScrapPreviewCard({
   entry,
   rotation,
   onOpen
@@ -74,7 +74,7 @@ function ScrapCard({
         </span>
       </div>
       <strong>{entry.title}</strong>
-      <p>{entry.previewText || "짧게 적은 메모가 여기에 보여요."}</p>
+      <p>{entry.previewText || "짧은 메모가 이 카드에 같이 보여집니다."}</p>
       <div className={styles.scrapFooter}>
         <span>사진 {entry.photoCount}</span>
         <span>할 일 {entry.todoCount}</span>
@@ -88,7 +88,8 @@ export function ArchiveHome() {
   const viewer = useAuthStore((state) => state.viewer);
   const [viewMode, setViewMode] = useState<"calendar" | "list">("calendar");
   const [anchorDate, setAnchorDate] = useState(todayKey());
-  const entryDate = todayKey();
+  const todayDate = todayKey();
+
   const query = useQuery({
     queryKey: ["entries", viewer?.id, "overview"],
     queryFn: () => loadEntryOverviews(viewer!),
@@ -102,7 +103,7 @@ export function ArchiveHome() {
   );
   const weeks = buildCalendarMatrix(anchorDate);
   const recentEntries = entries.slice(0, 4);
-  const todayOverview = entriesByDate.get(entryDate);
+  const todayOverview = entriesByDate.get(todayDate);
   const monthEntries = useMemo(
     () => entries.filter((entry) => entry.entryDate.startsWith(anchorDate.slice(0, 7))),
     [anchorDate, entries]
@@ -123,12 +124,13 @@ export function ArchiveHome() {
       <section className={styles.heroRow}>
         <article className={styles.todayCard}>
           <div className={styles.todayTop}>
-            <span className={styles.sectionTag}>today</span>
+            <span className={styles.sectionTag}>오늘</span>
             <span className={styles.todayBadge}>
               <Heart size={14} />
-              quick start
+              바로 쓰기
             </span>
           </div>
+
           <h3>{todayOverview?.title || "오늘 페이지 만들기"}</h3>
           <p>
             {todayOverview?.previewText ||
@@ -141,7 +143,7 @@ export function ArchiveHome() {
             <span>손글씨 보드 포함</span>
           </div>
 
-          <button className={styles.primaryAction} onClick={() => openEntry(entryDate)}>
+          <button className={styles.primaryAction} onClick={() => openEntry(todayDate)}>
             <Plus size={16} />
             {todayOverview ? "오늘 이어쓰기" : "오늘 시작하기"}
           </button>
@@ -150,12 +152,12 @@ export function ArchiveHome() {
         <article className={styles.previewBoard}>
           <div className={styles.previewHeader}>
             <div>
-              <span className={styles.sectionTag}>scrap board</span>
+              <span className={styles.sectionTag}>보드</span>
               <h3>최근 페이지 미리보기</h3>
             </div>
             <span className={styles.boardBadge}>
               <Sticker size={14} />
-              scrapbook
+              스크랩
             </span>
           </div>
 
@@ -170,10 +172,10 @@ export function ArchiveHome() {
           {recentEntries.length > 0 ? (
             <div className={styles.scrapGrid}>
               {recentEntries.map((entry, index) => (
-                <ScrapCard
+                <ScrapPreviewCard
                   key={entry.entryDate}
                   entry={entry}
-                  rotation={rotations[index % rotations.length]}
+                  rotation={cardRotations[index % cardRotations.length]}
                   onOpen={openEntry}
                 />
               ))}
@@ -181,7 +183,7 @@ export function ArchiveHome() {
           ) : (
             <div className={styles.emptyBoard}>
               <strong>첫 페이지를 만들어 보세요.</strong>
-              <p>기록이 쌓이면 여기에서 종이 메모처럼 한눈에 보이게 정리됩니다.</p>
+              <p>기록이 쌓이면 이 보드에 종이 조각처럼 최근 페이지가 정리됩니다.</p>
             </div>
           )}
         </article>
@@ -190,9 +192,10 @@ export function ArchiveHome() {
       <section className={styles.archiveCard}>
         <div className={styles.cardHeader}>
           <div>
-            <span className={styles.sectionTag}>archive</span>
+            <span className={styles.sectionTag}>보관함</span>
             <h3>{format(parseISO(anchorDate), "yyyy년 M월", { locale: ko })}</h3>
           </div>
+
           <div className={styles.controls}>
             <button
               type="button"
@@ -236,9 +239,11 @@ export function ArchiveHome() {
                 {day}
               </span>
             ))}
+
             {weeks.flat().map((day) => {
               const entry = entriesByDate.get(day.date);
               const stamp = entry ? scrapbookTag(entry) : null;
+
               return (
                 <button
                   key={day.date}
@@ -252,6 +257,7 @@ export function ArchiveHome() {
                     <span className={styles.dayNumber}>{day.dayOfMonth}</span>
                     {stamp ? <span className={styles.dayMood}>{stamp.glyph}</span> : null}
                   </div>
+
                   {entry ? (
                     <>
                       <strong>{entry.title}</strong>

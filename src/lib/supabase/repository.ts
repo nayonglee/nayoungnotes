@@ -1,6 +1,7 @@
 import type { Session } from "@supabase/supabase-js";
 import {
   createBlankEntry,
+  createDrawingSheet,
   recordToPersistenceItems,
   toEntryOverview,
   withSearchText
@@ -162,20 +163,48 @@ function mapRowsToRecord(entryRow: EntryRow, itemRows: EntryItemRow[]) {
         });
         break;
       case "drawing":
+        const legacyBackground =
+          row.payload.background === "plain" ||
+          row.payload.background === "ruled" ||
+          row.payload.background === "dot"
+            ? row.payload.background
+            : "dot";
+        const legacyStrokes = Array.isArray(row.payload.strokes)
+          ? (row.payload.strokes as DiaryEntryRecord["drawing"]["payload"]["sheets"][number]["strokes"])
+          : [];
+        const sheets = Array.isArray(row.payload.sheets)
+          ? (row.payload.sheets as DiaryEntryRecord["drawing"]["payload"]["sheets"]).map(
+              (sheet, index) => ({
+                id: sheet.id || `${row.id}_sheet_${index + 1}`,
+                title: sheet.title || `시트 ${index + 1}`,
+                background:
+                  sheet.background === "plain" ||
+                  sheet.background === "ruled" ||
+                  sheet.background === "dot"
+                    ? sheet.background
+                    : legacyBackground,
+                strokes: Array.isArray(sheet.strokes) ? sheet.strokes : []
+              })
+            )
+          : [
+              {
+                ...createDrawingSheet(0, legacyBackground, "시트 1"),
+                id: `${row.id}_sheet_1`,
+                strokes: legacyStrokes
+              }
+            ];
+        const activeSheetId =
+          typeof row.payload.activeSheetId === "string" &&
+          sheets.some((sheet) => sheet.id === row.payload.activeSheetId)
+            ? row.payload.activeSheetId
+            : sheets[0]?.id;
         record.drawing = {
           id: row.id,
           itemType: "drawing",
           orderIndex: row.order_index,
           payload: {
-            background:
-              row.payload.background === "plain" ||
-              row.payload.background === "ruled" ||
-              row.payload.background === "dot"
-                ? row.payload.background
-                : "dot",
-            strokes: Array.isArray(row.payload.strokes)
-              ? (row.payload.strokes as DiaryEntryRecord["drawing"]["payload"]["strokes"])
-              : []
+            activeSheetId: activeSheetId ?? `${row.id}_sheet_1`,
+            sheets
           },
           styleConfig: normalizeStyle(row),
           updatedAt: row.updated_at

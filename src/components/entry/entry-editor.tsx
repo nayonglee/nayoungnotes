@@ -132,9 +132,9 @@ export function EntryEditor({ entryDate }: { entryDate: string }) {
     <div className={styles.editorPage} data-theme-preset={record.themeConfig.preset}>
       <section className={styles.metaCard}>
         <div>
-          <span className={styles.sectionTag}>{record.entryDate}</span>
+          <span className={styles.sectionTag}>오늘</span>
           <h3>{formatEntryDate(entryDate)}</h3>
-          <p>본문은 안정적으로 입력하고, 사진과 손글씨는 페이지 안에서만 부드럽게 정리할 수 있습니다.</p>
+          <p>제목, 체크리스트, 본문, 사진, 손글씨를 한 페이지에서 정리합니다.</p>
         </div>
         <div className={styles.metaActions}>
           <SaveStateChip state={status?.state ?? "saved"} />
@@ -148,7 +148,7 @@ export function EntryEditor({ entryDate }: { entryDate: string }) {
       <section className={styles.entryCard}>
         <div className={styles.sectionHeader}>
           <div>
-            <span className={styles.sectionTag}>cover</span>
+            <span className={styles.sectionTag}>표지</span>
             <h4>오늘 제목</h4>
           </div>
         </div>
@@ -206,7 +206,7 @@ export function EntryEditor({ entryDate }: { entryDate: string }) {
         <article className={styles.entryCard}>
           <div className={styles.sectionHeader}>
             <div>
-              <span className={styles.sectionTag}>todo</span>
+              <span className={styles.sectionTag}>체크</span>
               <h4>빠른 체크리스트</h4>
             </div>
           </div>
@@ -224,7 +224,7 @@ export function EntryEditor({ entryDate }: { entryDate: string }) {
         <article className={styles.entryCard}>
           <div className={styles.sectionHeader}>
             <div>
-              <span className={styles.sectionTag}>diary</span>
+              <span className={styles.sectionTag}>본문</span>
               <h4>본문</h4>
             </div>
           </div>
@@ -249,7 +249,7 @@ export function EntryEditor({ entryDate }: { entryDate: string }) {
       <section className={styles.entryCard}>
         <div className={styles.sectionHeader}>
           <div>
-            <span className={styles.sectionTag}>board</span>
+            <span className={styles.sectionTag}>보드</span>
             <h4>사진 / 스티커 보드</h4>
           </div>
         </div>
@@ -264,7 +264,7 @@ export function EntryEditor({ entryDate }: { entryDate: string }) {
       <section className={styles.entryCard}>
         <div className={styles.sectionHeader}>
           <div>
-            <span className={styles.sectionTag}>handwriting</span>
+            <span className={styles.sectionTag}>펜</span>
             <h4>손글씨</h4>
           </div>
         </div>

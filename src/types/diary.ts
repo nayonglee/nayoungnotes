@@ -76,9 +76,16 @@ export interface DrawingStroke {
   points: StrokePoint[];
 }
 
-export interface DrawingPayload {
+export interface DrawingSheet {
+  id: string;
+  title: string;
   background: DrawingBackground;
   strokes: DrawingStroke[];
+}
+
+export interface DrawingPayload {
+  activeSheetId: string;
+  sheets: DrawingSheet[];
 }
 
 export interface BaseEntryItem<TPayload> {
