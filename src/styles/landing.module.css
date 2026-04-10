@@ -131,7 +131,8 @@
 
 .coverSheet h1 {
   margin: 1rem 0 0.55rem;
-  font-family: "Newsreader", serif;
+  font-family: var(--font-display);
+  font-weight: 700;
   font-size: clamp(2.35rem, 4vw, 4.3rem);
   line-height: 0.98;
 }
@@ -198,7 +199,8 @@
 
 .panelHeader h2 {
   margin: 0.8rem 0 0.25rem;
-  font-family: "Newsreader", serif;
+  font-family: var(--font-display);
+  font-weight: 700;
   font-size: 2rem;
 }
 

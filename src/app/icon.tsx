@@ -32,7 +32,7 @@ export default function Icon() {
             gap: 12
           }}
         >
-          <div style={{ fontFamily: "Newsreader", fontSize: 82, color: "#6f6368" }}>NN</div>
+          <div style={{ fontFamily: "SF Pro", fontSize: 82, fontWeight: 700, color: "#6f6368" }}>NN</div>
           <div style={{ fontSize: 34, color: "#7d6d73" }}>nayoung notes</div>
         </div>
       </div>

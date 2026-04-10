@@ -1,6 +1,5 @@
 import type { ReactNode } from "react";
 import type { Metadata, Viewport } from "next";
-import "@fontsource/newsreader/600.css";
 import "@/app/globals.css";
 import { AppProviders } from "@/components/providers/app-providers";
 

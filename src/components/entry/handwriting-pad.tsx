@@ -217,7 +217,8 @@ export function HandwritingPad({
     const rect = stageRef.current?.getBoundingClientRect();
     const x = rect ? (event.clientX - rect.left) / zoom : event.clientX;
     const y = rect ? (event.clientY - rect.top) / zoom : event.clientY;
-    return [x, y, event.pressure || 0.5];
+    const pressure = tool === "pencil" ? 0.5 : event.pressure || 0.5;
+    return [x, y, pressure];
   };
 
   const beginPan = (event: ReactPointerEvent<SVGSVGElement>) => {

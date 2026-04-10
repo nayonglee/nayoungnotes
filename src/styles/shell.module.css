@@ -145,7 +145,8 @@
 
 .coverMain h1 {
   margin: 0;
-  font-family: "Newsreader", serif;
+  font-family: var(--font-display);
+  font-weight: 700;
   font-size: 2rem;
   line-height: 1.04;
 }
@@ -223,7 +224,8 @@
 
 .header h2 {
   margin: 0.65rem 0 0.25rem;
-  font-family: "Newsreader", serif;
+  font-family: var(--font-display);
+  font-weight: 700;
   font-size: 2rem;
 }
 
@@ -276,7 +278,8 @@
 
 .lockCard h3 {
   margin: 0;
-  font-family: "Newsreader", serif;
+  font-family: var(--font-display);
+  font-weight: 700;
   font-size: 1.8rem;
 }
 
