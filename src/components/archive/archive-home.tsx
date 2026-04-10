@@ -125,7 +125,6 @@ export function ArchiveHome() {
   const [anchorDate, setAnchorDate] = useState(todayKey());
   const [coverOpened, setCoverOpened] = useState(false);
   const touchStartY = useRef<number | null>(null);
-  const contentRef = useRef<HTMLDivElement>(null);
   const todayDate = todayKey();
 
   const query = useQuery({
@@ -159,9 +158,6 @@ export function ArchiveHome() {
   const openCover = () => {
     if (coverOpened) return;
     setCoverOpened(true);
-    window.setTimeout(() => {
-      contentRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-    }, 180);
   };
 
   const handleCoverWheel = (event: ReactWheelEvent<HTMLElement>) => {
@@ -189,21 +185,41 @@ export function ArchiveHome() {
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
       >
-        <div className={styles.coverDecorLeft} aria-hidden="true">
-          <div className={styles.stickerSheet}>
-            <span className={styles.sheetTag}>sticker set</span>
-            <div className={styles.sheetGrid}>
-              <span><ScrapIcon kind="heart" size={22} /></span>
-              <span><ScrapIcon kind="star" size={22} /></span>
-              <span><ScrapIcon kind="flower" size={22} /></span>
-              <span><ScrapIcon kind="ribbon" size={22} /></span>
-              <span><ScrapIcon kind="spark" size={22} /></span>
-              <span><ScrapIcon kind="swirl" size={22} /></span>
+        <div className={styles.bookScene}>
+          <div className={styles.calendarSpread} data-open={coverOpened}>
+            <div className={styles.spreadHeader}>
+              <span className={styles.spreadTag}>calendar</span>
+              <strong>{format(parseISO(anchorDate), "MMMM yyyy")}</strong>
+              <small>Tap any date to open the page.</small>
+            </div>
+
+            <div className={styles.spreadCalendar}>
+              {weekdayLabels.map((day) => (
+                <span key={day} className={styles.spreadWeekday}>
+                  {day.slice(0, 1)}
+                </span>
+              ))}
+
+              {weeks.flat().map((day) => {
+                const entry = entriesByDate.get(day.date);
+                return (
+                  <button
+                    key={day.date}
+                    type="button"
+                    className={styles.spreadDay}
+                    data-outside={!day.inMonth}
+                    data-filled={Boolean(entry)}
+                    data-today={day.isToday}
+                    onClick={() => openEntry(day.date)}
+                  >
+                    <span>{day.dayOfMonth}</span>
+                    {entry ? <i /> : null}
+                  </button>
+                );
+              })}
             </div>
           </div>
-        </div>
 
-        <div className={styles.coverCenter}>
           <div className={styles.coverBook} data-open={coverOpened}>
             <div className={styles.coverSpine}>
               <div className={styles.coverCharm}>
@@ -216,218 +232,217 @@ export function ArchiveHome() {
 
             <div className={styles.coverPaper}>
               <div className={styles.coverTabs}>
-                <span>schedule</span>
-                <span>diary</span>
-                <span>photos</span>
-                <span>notes</span>
+                <span />
+                <span />
+                <span />
+                <span />
               </div>
 
-              <span className={styles.coverTag}>personal archive</span>
-              <h2>nayoungnotes</h2>
-              <p>
-                Open the planner cover to jump into your calendar, photo board, timed plans,
-                and handwriting pages.
-              </p>
-
-              <div className={styles.coverLabelCard}>
-                <span className={styles.coverStamp}>
-                  <ScrapIcon kind="heart" size={20} />
+              <div className={styles.coverHeader}>
+                <span className={styles.coverSeal}>
+                  <ScrapIcon kind="flower" size={20} />
                 </span>
-                <div>
-                  <strong>Daily scrapbook planner</strong>
-                  <small>Calendar first, decorating second.</small>
+                <div className={styles.coverTitleBlock}>
+                  <small>quiet scrapbook planner</small>
+                  <h2>nayoungnotes</h2>
                 </div>
               </div>
 
-              <div className={styles.coverLines}>
-                <span />
-                <span />
-                <span />
+              <div className={styles.coverLabelFrame}>
+                <span className={styles.coverLabelSeal}>
+                  <ScrapIcon kind="swirl" size={18} />
+                </span>
               </div>
 
-              <div className={styles.coverBadgeRow}>
-                <span><ScrapIcon kind="star" size={16} /> soft glow</span>
-                <span><ScrapIcon kind="ribbon" size={16} /> photo layers</span>
-                <span><ScrapIcon kind="flower" size={16} /> pen notes</span>
+              <div className={styles.coverWritingLines}>
+                <div>
+                  <small>Name</small>
+                  <span />
+                </div>
+                <div>
+                  <small>Date</small>
+                  <span />
+                </div>
+              </div>
+
+              <div className={styles.coverMiniCard}>
+                <span className={styles.coverMiniMark}>
+                  <ScrapIcon kind="heart" size={16} />
+                </span>
+                <div className={styles.coverMiniList}>
+                  <span>calendar</span>
+                  <span>diary</span>
+                  <span>photos</span>
+                  <span>notes</span>
+                </div>
               </div>
             </div>
           </div>
-
-          <div className={styles.coverPrompt}>
-            <button type="button" className={styles.openButton} onClick={openCover}>
-              Open diary
-            </button>
-            <span className={styles.scrollHint}>
-              <ChevronDown size={14} />
-              Or scroll to open
-            </span>
-          </div>
         </div>
 
-        <div className={styles.coverDecorRight} aria-hidden="true">
-          <div className={styles.penStand}>
-            <div className={styles.penCap} />
-            <div className={styles.penBody} />
-            <div className={styles.penTip} />
-          </div>
-          <div className={styles.floatIcons}>
-            <span><ScrapIcon kind="heart" size={24} /></span>
-            <span><ScrapIcon kind="spark" size={20} /></span>
-            <span><ScrapIcon kind="star" size={22} /></span>
-          </div>
+        <div className={styles.coverPrompt} data-open={coverOpened}>
+          <button type="button" className={styles.openButton} onClick={openCover}>
+            Open diary
+          </button>
+          <span className={styles.scrollHint}>
+            <ChevronDown size={14} />
+            Or scroll to open
+          </span>
         </div>
       </section>
 
-      <div ref={contentRef} className={styles.archiveContent} data-open={coverOpened}>
-        <section className={styles.archiveCard}>
-          <div className={styles.cardHeader}>
-            <div>
-              <span className={styles.sectionTag}>calendar</span>
-              <h3>{format(parseISO(anchorDate), "MMMM yyyy")}</h3>
-              <p className={styles.leadCopy}>
-                Start from the month view, then drop down into scrapbook covers whenever you want.
-              </p>
-            </div>
-
-            <div className={styles.controls}>
-              <button
-                type="button"
-                className={styles.iconButton}
-                onClick={() => setAnchorDate(format(subMonths(parseISO(anchorDate), 1), "yyyy-MM-dd"))}
-                aria-label="Previous month"
-              >
-                <ChevronLeft size={16} />
-              </button>
-              <button
-                type="button"
-                className={styles.iconButton}
-                onClick={() => setAnchorDate(format(addMonths(parseISO(anchorDate), 1), "yyyy-MM-dd"))}
-                aria-label="Next month"
-              >
-                <ChevronRight size={16} />
-              </button>
-              <button
-                type="button"
-                className={viewMode === "calendar" ? styles.activeToggle : styles.toggle}
-                onClick={() => setViewMode("calendar")}
-              >
-                <CalendarRange size={16} />
-                Calendar
-              </button>
-              <button
-                type="button"
-                className={viewMode === "list" ? styles.activeToggle : styles.toggle}
-                onClick={() => setViewMode("list")}
-              >
-                <List size={16} />
-                List
-              </button>
-            </div>
-          </div>
-
-          <div className={styles.boardStats}>
-            <span className={styles.statChip}>{monthEntries.length} pages</span>
-            <span className={styles.statChip}>{monthPhotoCount} photos</span>
-            <span className={styles.statChip}>{monthPlanCount} plans</span>
-            <span className={styles.statChip}>
-              {monthTodoDone}/{monthTodoTotal || 0} done
-            </span>
-            <button type="button" className={styles.newQuickButton} onClick={() => openEntry(todayDate)}>
-              <Plus size={16} />
-              Open today
-            </button>
-          </div>
-
-          {viewMode === "calendar" ? (
-            <div className={styles.calendarGrid}>
-              {weekdayLabels.map((day) => (
-                <span key={day} className={styles.weekday}>
-                  {day}
-                </span>
-              ))}
-
-              {weeks.flat().map((day) => {
-                const entry = entriesByDate.get(day.date);
-                const mood = entry?.mood ? moodStampMap[entry.mood] : null;
-
-                return (
-                  <button
-                    key={day.date}
-                    className={styles.dayCell}
-                    data-outside={!day.inMonth}
-                    data-today={day.isToday}
-                    data-filled={Boolean(entry)}
-                    onClick={() => openEntry(day.date)}
-                  >
-                    <div className={styles.dayTop}>
-                      <span className={styles.dayNumber}>{day.dayOfMonth}</span>
-                      {mood ? (
-                        <span className={styles.dayMood}>
-                          <ScrapIcon kind={mood.icon} size={14} />
-                        </span>
-                      ) : null}
-                    </div>
-
-                    {entry ? (
-                      <>
-                        <strong>{entry.title}</strong>
-                        <small>{entry.photoCount} photos / {entry.plannerCount} plans</small>
-                      </>
-                    ) : (
-                      <small>New page</small>
-                    )}
-                  </button>
-                );
-              })}
-            </div>
-          ) : (
-            <div className={styles.listView}>
-              {entries.map((entry, index) => (
-                <button
-                  key={entry.entryDate}
-                  className={styles.entryRow}
-                  style={{ "--row-rotation": `${index % 2 === 0 ? -0.6 : 0.6}deg` } as CSSProperties}
-                  onClick={() => openEntry(entry.entryDate)}
-                >
-                  <div>
-                    <strong>{format(parseISO(entry.entryDate), "EEEE, MMM d")}</strong>
-                    <p>{entry.title}</p>
-                  </div>
-                  <div className={styles.rowMeta}>
-                    <span>{entry.plannerCount} plans</span>
-                    <span>{entry.photoCount} photos</span>
-                  </div>
-                </button>
-              ))}
-            </div>
-          )}
-        </section>
-
-        <section className={styles.boardSection}>
-          <div className={styles.boardHeader}>
-            <div>
-              <span className={styles.sectionTag}>covers</span>
-              <h3>Recent scrapbook covers</h3>
-              <p>Open any page from a cover-style preview after you check the month.</p>
-            </div>
-          </div>
-
-          <div className={styles.boardGrid}>
-            <button type="button" className={styles.newTile} onClick={() => openEntry(todayDate)}>
-              <span className={styles.newBadge}>Today</span>
-              <div className={styles.newIcon}>
-                <Plus size={22} />
+      {coverOpened ? (
+        <div className={styles.archiveContent}>
+          <section className={styles.archiveCard}>
+            <div className={styles.cardHeader}>
+              <div>
+                <span className={styles.sectionTag}>calendar</span>
+                <h3>{format(parseISO(anchorDate), "MMMM yyyy")}</h3>
+                <p className={styles.leadCopy}>
+                  Start from the month view, then drop down into scrapbook covers whenever you want.
+                </p>
               </div>
-              <strong>Create or continue today&apos;s page</strong>
-              <p>Open the daily spread with checklist, timed plans, photos, handwriting, and diary space.</p>
-            </button>
 
-            {boardEntries.map((entry) => (
-              <BoardTile key={entry.entryDate} entry={entry} onOpen={openEntry} />
-            ))}
-          </div>
-        </section>
-      </div>
+              <div className={styles.controls}>
+                <button
+                  type="button"
+                  className={styles.iconButton}
+                  onClick={() => setAnchorDate(format(subMonths(parseISO(anchorDate), 1), "yyyy-MM-dd"))}
+                  aria-label="Previous month"
+                >
+                  <ChevronLeft size={16} />
+                </button>
+                <button
+                  type="button"
+                  className={styles.iconButton}
+                  onClick={() => setAnchorDate(format(addMonths(parseISO(anchorDate), 1), "yyyy-MM-dd"))}
+                  aria-label="Next month"
+                >
+                  <ChevronRight size={16} />
+                </button>
+                <button
+                  type="button"
+                  className={viewMode === "calendar" ? styles.activeToggle : styles.toggle}
+                  onClick={() => setViewMode("calendar")}
+                >
+                  <CalendarRange size={16} />
+                  Calendar
+                </button>
+                <button
+                  type="button"
+                  className={viewMode === "list" ? styles.activeToggle : styles.toggle}
+                  onClick={() => setViewMode("list")}
+                >
+                  <List size={16} />
+                  List
+                </button>
+              </div>
+            </div>
+
+            <div className={styles.boardStats}>
+              <span className={styles.statChip}>{monthEntries.length} pages</span>
+              <span className={styles.statChip}>{monthPhotoCount} photos</span>
+              <span className={styles.statChip}>{monthPlanCount} plans</span>
+              <span className={styles.statChip}>
+                {monthTodoDone}/{monthTodoTotal || 0} done
+              </span>
+              <button type="button" className={styles.newQuickButton} onClick={() => openEntry(todayDate)}>
+                <Plus size={16} />
+                Open today
+              </button>
+            </div>
+
+            {viewMode === "calendar" ? (
+              <div className={styles.calendarGrid}>
+                {weekdayLabels.map((day) => (
+                  <span key={day} className={styles.weekday}>
+                    {day}
+                  </span>
+                ))}
+
+                {weeks.flat().map((day) => {
+                  const entry = entriesByDate.get(day.date);
+                  const mood = entry?.mood ? moodStampMap[entry.mood] : null;
+
+                  return (
+                    <button
+                      key={day.date}
+                      className={styles.dayCell}
+                      data-outside={!day.inMonth}
+                      data-today={day.isToday}
+                      data-filled={Boolean(entry)}
+                      onClick={() => openEntry(day.date)}
+                    >
+                      <div className={styles.dayTop}>
+                        <span className={styles.dayNumber}>{day.dayOfMonth}</span>
+                        {mood ? (
+                          <span className={styles.dayMood}>
+                            <ScrapIcon kind={mood.icon} size={14} />
+                          </span>
+                        ) : null}
+                      </div>
+
+                      {entry ? (
+                        <>
+                          <strong>{entry.title}</strong>
+                          <small>{entry.photoCount} photos / {entry.plannerCount} plans</small>
+                        </>
+                      ) : (
+                        <small>New page</small>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className={styles.listView}>
+                {entries.map((entry, index) => (
+                  <button
+                    key={entry.entryDate}
+                    className={styles.entryRow}
+                    style={{ "--row-rotation": `${index % 2 === 0 ? -0.6 : 0.6}deg` } as CSSProperties}
+                    onClick={() => openEntry(entry.entryDate)}
+                  >
+                    <div>
+                      <strong>{format(parseISO(entry.entryDate), "EEEE, MMM d")}</strong>
+                      <p>{entry.title}</p>
+                    </div>
+                    <div className={styles.rowMeta}>
+                      <span>{entry.plannerCount} plans</span>
+                      <span>{entry.photoCount} photos</span>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
+          </section>
+
+          <section className={styles.boardSection}>
+            <div className={styles.boardHeader}>
+              <div>
+                <span className={styles.sectionTag}>covers</span>
+                <h3>Recent scrapbook covers</h3>
+                <p>Open any page from a cover-style preview after you check the month.</p>
+              </div>
+            </div>
+
+            <div className={styles.boardGrid}>
+              <button type="button" className={styles.newTile} onClick={() => openEntry(todayDate)}>
+                <span className={styles.newBadge}>Today</span>
+                <div className={styles.newIcon}>
+                  <Plus size={22} />
+                </div>
+                <strong>Create or continue today&apos;s page</strong>
+                <p>Open the daily spread with checklist, timed plans, photos, handwriting, and diary space.</p>
+              </button>
+
+              {boardEntries.map((entry) => (
+                <BoardTile key={entry.entryDate} entry={entry} onOpen={openEntry} />
+              ))}
+            </div>
+          </section>
+        </div>
+      ) : null}
     </div>
   );
 }
