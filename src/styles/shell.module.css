@@ -6,6 +6,14 @@
   padding: 1.2rem;
 }
 
+.bareFrame {
+  min-height: 100vh;
+}
+
+.bareContent {
+  min-height: 100vh;
+}
+
 .sidebar {
   display: grid;
   gap: 1rem;

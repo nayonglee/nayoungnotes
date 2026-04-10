@@ -3,7 +3,11 @@ import { AppShell } from "@/components/layout/app-shell";
 
 export default function ArchivePage() {
   return (
-    <AppShell title="Board Archive" subtitle="Your scrapbook board, calendar, and saved pages">
+    <AppShell
+      title="Board Archive"
+      subtitle="Your scrapbook board, calendar, and saved pages"
+      variant="bare"
+    >
       <ArchiveHome />
     </AppShell>
   );

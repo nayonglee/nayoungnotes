@@ -21,11 +21,13 @@ export function AppShell({
   title,
   subtitle,
   headerAccessory,
+  variant = "default",
   children
 }: {
   title: string;
   subtitle: string;
   headerAccessory?: ReactNode;
+  variant?: "default" | "bare";
   children: ReactNode;
 }) {
   const pathname = usePathname();
@@ -45,6 +47,15 @@ export function AppShell({
           <Sparkles size={24} />
           <p>Loading your pages...</p>
         </div>
+      </div>
+    );
+  }
+
+  if (variant === "bare") {
+    return (
+      <div className={styles.bareFrame}>
+        <main className={styles.bareContent}>{children}</main>
+        <PinLockOverlay />
       </div>
     );
   }
