@@ -270,12 +270,15 @@
 .iconAction,
 .toolChip,
 .toolActive,
+.toolIconButton,
+.toolIconActive,
 .widthChip,
 .widthActive,
 .presetChip,
 .presetActive,
 .policyChip,
 .policyActive,
+.secondaryActive,
 .sheetTab,
 .sheetTabActive {
   border: none;
@@ -293,12 +296,15 @@
 .layoutActive,
 .toolChip,
 .toolActive,
+.toolIconButton,
+.toolIconActive,
 .widthChip,
 .widthActive,
 .presetChip,
 .presetActive,
 .policyChip,
 .policyActive,
+.secondaryActive,
 .sheetTab,
 .sheetTabActive {
   border-radius: 999px;
@@ -309,9 +315,11 @@
 .moodActive,
 .themeActive,
 .toolActive,
+.toolIconActive,
 .widthActive,
 .presetActive,
 .policyActive,
+.secondaryActive,
 .layoutActive,
 .sheetTabActive {
   background: linear-gradient(135deg, rgba(255, 208, 226, 1), rgba(227, 243, 204, 0.96));
@@ -327,6 +335,7 @@
 .layoutChip,
 .addButton,
 .toolChip,
+.toolIconButton,
 .widthChip,
 .presetChip,
 .policyChip,
@@ -866,11 +875,15 @@
 
 .sheetRow {
   justify-content: space-between;
-  align-items: flex-start;
+  align-items: center;
+  gap: 0.9rem;
 }
 
 .sheetTabs {
   flex: 1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
 }
 
 .sheetTab,
@@ -896,11 +909,20 @@
 
 .sheetActions {
   justify-content: flex-end;
+  align-items: center;
+  gap: 0.45rem;
 }
 
 .handwritingToolbar {
   display: grid;
-  gap: 0.7rem;
+  gap: 0.55rem;
+  padding: 0.2rem 0 0.15rem;
+}
+
+.toolRow {
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
 }
 
 .presetChip,
@@ -910,6 +932,15 @@
   display: inline-flex;
   align-items: center;
   gap: 0.45rem;
+}
+
+.toolIconButton,
+.toolIconActive {
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  display: grid;
+  place-items: center;
 }
 
 .presetDot {
@@ -955,6 +986,7 @@
 .canvasControlRow {
   justify-content: space-between;
   align-items: center;
+  gap: 0.8rem;
 }
 
 .policyChip,
@@ -1105,6 +1137,11 @@
 
   .boardToolbarMain,
   .canvasControlRow {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .toolRow {
     flex-direction: column;
     align-items: stretch;
   }

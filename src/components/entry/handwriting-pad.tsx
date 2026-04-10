@@ -426,110 +426,108 @@ export function HandwritingPad({
             >
               <X size={15} />
             </button>
+            <button
+              type="button"
+              className={styles.iconAction}
+              onClick={undo}
+              disabled={undoCount === 0}
+              aria-label="Undo stroke"
+            >
+              <RotateCcw size={15} />
+            </button>
+            <button
+              type="button"
+              className={styles.iconAction}
+              onClick={redo}
+              disabled={redoStack.length === 0}
+              aria-label="Redo stroke"
+            >
+              <RotateCw size={15} />
+            </button>
           </div>
         </div>
 
-        <div className={styles.presetRow}>
-          {penPresets.map((preset) => (
-            <button
-              key={preset.id}
-              type="button"
-              className={activePreset === preset.id ? styles.presetActive : styles.presetChip}
-              onClick={() => selectPreset(preset.id)}
-            >
-              <span
-                className={styles.presetDot}
-                style={{ background: preset.color }}
-                aria-hidden="true"
-              />
-              {preset.label}
-            </button>
-          ))}
-        </div>
-
         <div className={styles.toolRow}>
-          {(Object.keys(toolMeta) as ToolMode[]).map((toolKey) => {
-            const meta = toolMeta[toolKey];
-            const Icon = meta.icon;
-            return (
+          <div className={styles.inlineButtons}>
+            {penPresets.map((preset) => (
               <button
-                key={toolKey}
+                key={preset.id}
                 type="button"
-                className={tool === toolKey ? styles.toolActive : styles.toolChip}
-                onClick={() => selectTool(toolKey)}
+                className={activePreset === preset.id ? styles.presetActive : styles.presetChip}
+                onClick={() => selectPreset(preset.id)}
               >
-                <Icon size={16} />
-                {meta.label}
+                <span
+                  className={styles.presetDot}
+                  style={{ background: preset.color }}
+                  aria-hidden="true"
+                />
+                {preset.label}
               </button>
-            );
-          })}
-        </div>
+            ))}
+          </div>
 
-        <div className={styles.inlineButtons}>
-          {palette.map((swatch) => (
-            <button
-              key={swatch}
-              type="button"
-              className={styles.colorSwatch}
-              style={{ background: swatch }}
-              data-active={color === swatch}
-              onClick={() => {
-                setColor(swatch);
-                setActivePreset("");
-              }}
-              aria-label={`Color ${swatch}`}
-            />
-          ))}
-        </div>
+          <div className={styles.inlineButtons}>
+            {(Object.keys(toolMeta) as ToolMode[]).map((toolKey) => {
+              const meta = toolMeta[toolKey];
+              const Icon = meta.icon;
+              return (
+                <button
+                  key={toolKey}
+                  type="button"
+                  className={tool === toolKey ? styles.toolIconActive : styles.toolIconButton}
+                  onClick={() => selectTool(toolKey)}
+                  aria-label={meta.label}
+                  title={meta.label}
+                >
+                  <Icon size={16} />
+                </button>
+              );
+            })}
 
-        <div className={styles.inlineButtons}>
-          {toolMeta[tool].widths.map((value) => (
-            <button
-              key={value}
-              type="button"
-              className={width === value ? styles.widthActive : styles.widthChip}
-              onClick={() => {
-                setWidth(value);
-                setActivePreset("");
-              }}
-            >
-              <span style={{ width: Math.max(4, value * 1.6), height: Math.max(4, value * 1.6) }} />
-            </button>
-          ))}
-          <button
-            type="button"
-            className={styles.iconAction}
-            onClick={undo}
-            disabled={undoCount === 0}
-          >
-            <RotateCcw size={15} />
-          </button>
-          <button
-            type="button"
-            className={styles.iconAction}
-            onClick={redo}
-            disabled={redoStack.length === 0}
-          >
-            <RotateCw size={15} />
-          </button>
+            {palette.map((swatch) => (
+              <button
+                key={swatch}
+                type="button"
+                className={styles.colorSwatch}
+                style={{ background: swatch }}
+                data-active={color === swatch}
+                onClick={() => {
+                  setColor(swatch);
+                  setActivePreset("");
+                }}
+                aria-label={`Color ${swatch}`}
+              />
+            ))}
+
+            {toolMeta[tool].widths.map((value) => (
+              <button
+                key={value}
+                type="button"
+                className={width === value ? styles.widthActive : styles.widthChip}
+                onClick={() => {
+                  setWidth(value);
+                  setActivePreset("");
+                }}
+                aria-label={`Width ${value}`}
+              >
+                <span style={{ width: Math.max(4, value * 1.6), height: Math.max(4, value * 1.6) }} />
+              </button>
+            ))}
+          </div>
         </div>
 
         <div className={styles.canvasControlRow}>
           <div className={styles.inlineButtons}>
-            <button
-              type="button"
-              className={inputPolicy === "stylus" ? styles.policyActive : styles.policyChip}
-              onClick={() => setInputPolicy("stylus")}
-            >
-              Pen first
-            </button>
-            <button
-              type="button"
-              className={inputPolicy === "all" ? styles.policyActive : styles.policyChip}
-              onClick={() => setInputPolicy("all")}
-            >
-              Finger draw
-            </button>
+            {backgrounds.map((option) => (
+              <button
+                key={option.id}
+                type="button"
+                className={background === option.id ? styles.secondaryActive : styles.secondaryButton}
+                onClick={() => updateActiveSheet((sheet) => ({ ...sheet, background: option.id }))}
+              >
+                {option.label}
+              </button>
+            ))}
           </div>
 
           <div className={styles.inlineButtons}>
@@ -558,6 +556,21 @@ export function HandwritingPad({
               <Minus size={15} />
               Line
             </button>
+
+            <button
+              type="button"
+              className={inputPolicy === "stylus" ? styles.policyActive : styles.policyChip}
+              onClick={() => setInputPolicy("stylus")}
+            >
+              Pen first
+            </button>
+            <button
+              type="button"
+              className={inputPolicy === "all" ? styles.policyActive : styles.policyChip}
+              onClick={() => setInputPolicy("all")}
+            >
+              Finger draw
+            </button>
           </div>
 
           <div className={styles.inlineButtons}>
@@ -579,19 +592,6 @@ export function HandwritingPad({
               Reset
             </button>
           </div>
-        </div>
-
-        <div className={styles.inlineButtons}>
-          {backgrounds.map((option) => (
-            <button
-              key={option.id}
-              type="button"
-              className={background === option.id ? styles.primaryButton : styles.secondaryButton}
-              onClick={() => updateActiveSheet((sheet) => ({ ...sheet, background: option.id }))}
-            >
-              {option.label}
-            </button>
-          ))}
         </div>
       </div>
 
@@ -621,15 +621,6 @@ export function HandwritingPad({
               <path d={strokeToSvgPath(liveStroke)} fill={liveStroke.color} opacity={liveStroke.opacity} />
             ) : null}
           </svg>
-        </div>
-        <div className={styles.canvasHint}>
-          {inputPolicy === "stylus"
-            ? straightLine
-              ? "Line mode is on. Touch still pans first, and the pen draws straight strokes."
-              : "Touch pans the page first, while the pen keeps drawing."
-            : straightLine
-              ? "Line mode is on for pen, pencil, and highlighter."
-              : "Both touch and pen can draw on the page."}
         </div>
       </div>
     </div>

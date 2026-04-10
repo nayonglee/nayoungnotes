@@ -87,11 +87,15 @@ export const stickerPresets: {
   tint: string;
   rotation: PresetRotation;
 }[] = [
-  { id: "starry", label: "Star", motif: "star", tint: "#ffe7f1", rotation: -5 },
-  { id: "mushroom", label: "Swirl", motif: "swirl", tint: "#ffe7de", rotation: 5 },
-  { id: "strawberry", label: "Heart", motif: "heart", tint: "#ffd6e6", rotation: -5 },
-  { id: "flower", label: "Flower", motif: "flower", tint: "#eaf5d8", rotation: 0 },
-  { id: "ribbon", label: "Ribbon", motif: "ribbon", tint: "#ffeef5", rotation: 5 }
+  { id: "heart-puff", label: "Heart", motif: "heart", tint: "#ffd6e6", rotation: -5 },
+  { id: "star-sugar", label: "Star", motif: "star", tint: "#fff1c9", rotation: -5 },
+  { id: "petal-bloom", label: "Flower", motif: "flower", tint: "#eaf5d8", rotation: 0 },
+  { id: "ribbon-note", label: "Ribbon", motif: "ribbon", tint: "#ffeef5", rotation: 5 },
+  { id: "swirl-seal", label: "Swirl", motif: "swirl", tint: "#ffe7de", rotation: 5 },
+  { id: "spark-twinkle", label: "Spark", motif: "spark", tint: "#fff0d8", rotation: 0 },
+  { id: "clover-mint", label: "Clover", motif: "clover", tint: "#e4f2d4", rotation: 0 },
+  { id: "cherry-pop", label: "Cherry", motif: "cherry", tint: "#ffe3dc", rotation: -5 },
+  { id: "label-tag", label: "Label", motif: "label", tint: "#fff4d9", rotation: 5 }
 ];
 
 export function stickerMotif(stickerId: string) {

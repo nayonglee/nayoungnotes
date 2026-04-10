@@ -1,6 +1,15 @@
 import type { CSSProperties } from "react";
 
-export type ScrapIconKind = "star" | "heart" | "flower" | "ribbon" | "swirl" | "spark";
+export type ScrapIconKind =
+  | "star"
+  | "heart"
+  | "flower"
+  | "ribbon"
+  | "swirl"
+  | "spark"
+  | "clover"
+  | "cherry"
+  | "label";
 
 const viewBox = "0 0 24 24";
 
@@ -83,6 +92,48 @@ export function ScrapIcon({
           strokeWidth="1.2"
           strokeLinejoin="round"
         />
+      </svg>
+    );
+  }
+
+  if (kind === "clover") {
+    return (
+      <svg viewBox={viewBox} width={size} height={size} className={className} style={style} aria-hidden="true">
+        <g fill="#dff0c5" stroke="#8d767f" strokeWidth="1.1">
+          <circle cx="9" cy="9" r="3.5" />
+          <circle cx="15" cy="9" r="3.5" />
+          <circle cx="9" cy="15" r="3.5" />
+          <circle cx="15" cy="15" r="3.5" />
+          <path d="M11.8 15.6c1 1.7 1.1 3 .7 4.7" fill="none" stroke="#8d767f" strokeLinecap="round" />
+        </g>
+      </svg>
+    );
+  }
+
+  if (kind === "cherry") {
+    return (
+      <svg viewBox={viewBox} width={size} height={size} className={className} style={style} aria-hidden="true">
+        <g stroke="#8d767f" strokeWidth="1.1" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M12 6.4c1.9 0 3.4 1.1 4.2 3.1" fill="none" />
+          <path d="M12 6.4c-1.9 0-3.4 1.1-4.2 3.1" fill="none" />
+          <path d="M12 6.3c-.3-1.1.1-2.2 1.1-3" fill="none" />
+          <circle cx="8.6" cy="15.2" r="3.4" fill="#f4a6bf" />
+          <circle cx="15.4" cy="15.2" r="3.4" fill="#ffb6a2" />
+          <path d="M10.1 12.5c.8-1.5 1.3-2.8 1.9-4.6" fill="none" />
+          <path d="M13.9 12.5c-.8-1.5-1.3-2.8-1.9-4.6" fill="none" />
+        </g>
+      </svg>
+    );
+  }
+
+  if (kind === "label") {
+    return (
+      <svg viewBox={viewBox} width={size} height={size} className={className} style={style} aria-hidden="true">
+        <g stroke="#8d767f" strokeWidth="1.1" strokeLinejoin="round">
+          <path d="M4.4 7.2h15.2v9.6H4.4l1.8-4.8Z" fill="#fff6dc" />
+          <circle cx="8.2" cy="12" r="1.2" fill="#ffd5e5" />
+          <path d="M11 10.2h5.1M11 13.6h3.8" fill="none" strokeLinecap="round" />
+        </g>
       </svg>
     );
   }
