@@ -18,6 +18,7 @@ import styles from "@/styles/archive.module.css";
 
 const weekdayLabels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const EMPTY_ENTRIES: EntryOverview[] = [];
+const binderRings = [0, 1, 2, 3, 4, 5];
 
 export function ArchiveHome() {
   const router = useRouter();
@@ -83,66 +84,93 @@ export function ArchiveHome() {
       >
         <div className={styles.bookScene}>
           <div className={styles.calendarSpread} data-open={coverOpened}>
-            <div className={styles.spreadHeader}>
-              <div className={styles.spreadHeaderTop}>
-                <span className={styles.spreadTag}>calendar</span>
-                <div className={styles.spreadNav}>
-                  <button
-                    type="button"
-                    className={styles.spreadIconButton}
-                    onClick={() => setAnchorDate(format(subMonths(parseISO(anchorDate), 1), "yyyy-MM-dd"))}
-                    aria-label="Previous month"
-                  >
-                    <ChevronLeft size={14} />
-                  </button>
-                  <button
-                    type="button"
-                    className={styles.spreadIconButton}
-                    onClick={() => setAnchorDate(format(addMonths(parseISO(anchorDate), 1), "yyyy-MM-dd"))}
-                    aria-label="Next month"
-                  >
-                    <ChevronRight size={14} />
-                  </button>
-                  <button
-                    type="button"
-                    className={styles.spreadTodayButton}
-                    onClick={() => openEntry(todayDate)}
-                  >
-                    <Plus size={13} />
-                    Today
-                  </button>
+            <div className={styles.spreadNotebook}>
+              <div className={`${styles.spreadPage} ${styles.spreadPageLeft}`} />
+              <div className={`${styles.spreadPage} ${styles.spreadPageRight}`} />
+
+              <div className={styles.spreadContent}>
+                <div className={styles.spreadHeader}>
+                  <div className={styles.spreadHeaderTop}>
+                    <strong>{format(parseISO(anchorDate), "MMMM yyyy")}</strong>
+                    <div className={styles.spreadNav}>
+                      <button
+                        type="button"
+                        className={styles.spreadIconButton}
+                        onClick={() => setAnchorDate(format(subMonths(parseISO(anchorDate), 1), "yyyy-MM-dd"))}
+                        aria-label="Previous month"
+                      >
+                        <ChevronLeft size={14} />
+                      </button>
+                      <button
+                        type="button"
+                        className={styles.spreadIconButton}
+                        onClick={() => setAnchorDate(format(addMonths(parseISO(anchorDate), 1), "yyyy-MM-dd"))}
+                        aria-label="Next month"
+                      >
+                        <ChevronRight size={14} />
+                      </button>
+                      <button
+                        type="button"
+                        className={styles.spreadTodayButton}
+                        onClick={() => openEntry(todayDate)}
+                      >
+                        <Plus size={13} />
+                        Today
+                      </button>
+                    </div>
+                  </div>
+                  <small className={styles.spreadMeta}>
+                    {monthEntries.length} pages and {monthPhotoCount} photos this month. Tap any date to open the page.
+                  </small>
+                </div>
+
+                <div className={styles.spreadCalendar}>
+                  {weekdayLabels.map((day) => (
+                    <span key={day} className={styles.spreadWeekday}>
+                      {day}
+                    </span>
+                  ))}
+
+                  {weeks.flat().map((day) => {
+                    const entry = entriesByDate.get(day.date);
+                    return (
+                      <button
+                        key={day.date}
+                        type="button"
+                        className={styles.spreadDay}
+                        data-outside={!day.inMonth}
+                        data-filled={Boolean(entry)}
+                        data-today={day.isToday}
+                        onClick={() => openEntry(day.date)}
+                      >
+                        <span className={styles.spreadDayNumber}>{day.dayOfMonth}</span>
+                        {entry ? (
+                          <>
+                            <strong className={styles.spreadDayTitle}>{entry.title}</strong>
+                            <small className={styles.spreadDayMeta}>
+                              {entry.photoCount > 0
+                                ? `${entry.photoCount} photos`
+                                : entry.plannerCount > 0
+                                  ? `${entry.plannerCount} plans`
+                                  : "Open page"}
+                            </small>
+                          </>
+                        ) : day.isToday ? (
+                          <small className={styles.spreadDayHint}>Start here</small>
+                        ) : (
+                          <span className={styles.spreadDayLine} />
+                        )}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
-              <strong>{format(parseISO(anchorDate), "MMMM yyyy")}</strong>
-              <small className={styles.spreadMeta}>
-                {monthEntries.length} pages and {monthPhotoCount} photos this month. Tap any date to open the page.
-              </small>
-            </div>
 
-            <div className={styles.spreadCalendar}>
-              {weekdayLabels.map((day) => (
-                <span key={day} className={styles.spreadWeekday}>
-                  {day.slice(0, 1)}
-                </span>
-              ))}
-
-              {weeks.flat().map((day) => {
-                const entry = entriesByDate.get(day.date);
-                return (
-                  <button
-                    key={day.date}
-                    type="button"
-                    className={styles.spreadDay}
-                    data-outside={!day.inMonth}
-                    data-filled={Boolean(entry)}
-                    data-today={day.isToday}
-                    onClick={() => openEntry(day.date)}
-                  >
-                    <span>{day.dayOfMonth}</span>
-                    {entry ? <i /> : null}
-                  </button>
-                );
-              })}
+              <div className={styles.spreadRings} aria-hidden="true">
+                {binderRings.map((ring) => (
+                  <span key={ring} className={styles.spreadRing} />
+                ))}
+              </div>
             </div>
           </div>
 
