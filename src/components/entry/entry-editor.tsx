@@ -226,7 +226,7 @@ export function EntryEditor({ entryDate }: { entryDate: string }) {
           <div className={styles.sectionHeader}>
             <div>
               <span className={styles.sectionTag}>plan</span>
-              <h4>Time blocks</h4>
+              <h4>Timed plans</h4>
             </div>
           </div>
           <TimePlanner

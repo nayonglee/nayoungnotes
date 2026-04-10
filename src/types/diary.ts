@@ -50,8 +50,7 @@ export interface TodoPayload {
 
 export interface PlannerBlock {
   id: string;
-  start: string;
-  end: string;
+  time: string;
   title: string;
   note: string;
 }

@@ -2,6 +2,7 @@ import type { Session } from "@supabase/supabase-js";
 import {
   createBlankEntry,
   createDrawingSheet,
+  normalizePlannerBlocks,
   normalizeEntryRecord,
   recordToPersistenceItems,
   toEntryOverview,
@@ -140,9 +141,7 @@ function mapRowsToRecord(entryRow: EntryRow, itemRows: EntryItemRow[]) {
           itemType: "planner",
           orderIndex: row.order_index,
           payload: {
-            blocks: Array.isArray(row.payload.blocks)
-              ? (row.payload.blocks as DiaryEntryRecord["planner"]["payload"]["blocks"])
-              : []
+            blocks: normalizePlannerBlocks(row.payload.blocks)
           },
           styleConfig: normalizeStyle(row),
           updatedAt: row.updated_at
@@ -337,9 +336,7 @@ export async function listEntries(viewer: Viewer, search = ""): Promise<EntryOve
       const todoItems = Array.isArray(todoRow?.payload.items)
         ? (todoRow?.payload.items as DiaryEntryRecord["todo"]["payload"]["items"])
         : [];
-      const plannerBlocks = Array.isArray(plannerRow?.payload.blocks)
-        ? (plannerRow?.payload.blocks as DiaryEntryRecord["planner"]["payload"]["blocks"])
-        : [];
+      const plannerBlocks = normalizePlannerBlocks(plannerRow?.payload.blocks);
       const coverPhotoPath = photoRows.find((item) => typeof item.payload.path === "string")?.payload
         .path as string | undefined;
 

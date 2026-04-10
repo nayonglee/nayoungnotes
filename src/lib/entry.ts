@@ -25,6 +25,33 @@ function baseStyle(rotation: PresetRotation = 0) {
   return { x: 0, y: 0, zIndex: 1, presetRotation: rotation };
 }
 
+function normalizePlannerTimeValue(value: unknown) {
+  if (typeof value !== "string") return "12:00";
+  const trimmed = value.trim();
+  const match = trimmed.match(/^(\d{1,2}):(\d{2})/);
+  if (!match) return "12:00";
+  const hours = Number(match[1]);
+  const minutes = Number(match[2]);
+  if (Number.isNaN(hours) || Number.isNaN(minutes)) return "12:00";
+  return `${String(Math.max(0, Math.min(hours, 23))).padStart(2, "0")}:${String(
+    Math.max(0, Math.min(minutes, 59))
+  ).padStart(2, "0")}`;
+}
+
+export function normalizePlannerBlocks(blocks: unknown): PlannerBlock[] {
+  if (!Array.isArray(blocks)) return [];
+
+  return blocks.map((block) => {
+    const source = block && typeof block === "object" ? (block as Record<string, unknown>) : {};
+    return {
+      id: typeof source.id === "string" ? source.id : createId("plan_block"),
+      time: normalizePlannerTimeValue(source.time ?? source.start),
+      title: typeof source.title === "string" ? source.title : "",
+      note: typeof source.note === "string" ? source.note : ""
+    };
+  });
+}
+
 export function createDrawingSheet(
   index = 0,
   background: DrawingBackground = "dot",
@@ -71,7 +98,7 @@ export function createBlankEntry(entryDate: string, viewer?: Viewer | null): Dia
       id: createId("planner"),
       itemType: "planner",
       orderIndex: 2,
-      payload: { blocks: [createPlannerBlock(), createPlannerBlock("11:00", "12:00")] },
+      payload: { blocks: [createPlannerBlock("12:00"), createPlannerBlock("18:00")] },
       styleConfig: baseStyle(),
       updatedAt: now
     },
@@ -95,11 +122,10 @@ export function createTodoCard(text = ""): TodoCard {
   return { id: createId("todo_item"), text, checked: false };
 }
 
-export function createPlannerBlock(start = "09:00", end = "10:00"): PlannerBlock {
+export function createPlannerBlock(time = "12:00"): PlannerBlock {
   return {
     id: createId("plan_block"),
-    start,
-    end,
+    time: normalizePlannerTimeValue(time),
     title: "",
     note: ""
   };
@@ -110,6 +136,7 @@ export function normalizeEntryRecord(
   viewer?: Viewer | null
 ): DiaryEntryRecord {
   const base = createBlankEntry(record.entryDate, viewer);
+  const plannerBlocks = normalizePlannerBlocks(record.planner?.payload?.blocks);
   const drawingPayload =
     record.drawing?.payload && Array.isArray(record.drawing.payload.sheets)
       ? record.drawing.payload
@@ -131,7 +158,9 @@ export function normalizeEntryRecord(
     planner: {
       ...base.planner,
       ...record.planner,
-      payload: { blocks: record.planner?.payload?.blocks ?? base.planner.payload.blocks }
+      payload: {
+        blocks: plannerBlocks.length > 0 ? plannerBlocks : record.planner?.payload?.blocks === undefined ? base.planner.payload.blocks : []
+      }
     },
     photos: record.photos ?? [],
     stickers: record.stickers ?? [],
@@ -150,7 +179,7 @@ export function buildSearchText(record: DiaryEntryRecord) {
     normalized.mood ?? "",
     normalized.text.payload.content,
     ...normalized.todo.payload.items.map((item) => item.text),
-    ...normalized.planner.payload.blocks.flatMap((item) => [item.title, item.note]),
+    ...normalized.planner.payload.blocks.flatMap((item) => [item.time, item.title, item.note]),
     ...normalized.photos.map((item) => item.payload.caption),
     ...normalized.stickers.map((item) => item.payload.label)
   ]

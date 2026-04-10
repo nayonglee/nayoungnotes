@@ -301,10 +301,10 @@
   box-shadow: inset 0 0 0 1px rgba(140, 116, 126, 0.1);
 }
 
-.plannerTimeRow {
+.plannerMainRow {
   display: grid;
-  grid-template-columns: auto minmax(84px, 110px) auto minmax(84px, 110px) auto;
-  gap: 0.55rem;
+  grid-template-columns: minmax(152px, 190px) minmax(0, 1fr) auto;
+  gap: 0.65rem;
   align-items: center;
 }
 
@@ -318,10 +318,31 @@
   box-shadow: inset 0 0 0 1px rgba(140, 116, 126, 0.1);
 }
 
-.plannerDivider {
+.plannerTimeStack {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.55rem;
+  align-items: center;
+}
+
+.plannerTimeField {
+  display: grid;
+  gap: 0.28rem;
+}
+
+.plannerTimeBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-self: start;
+  min-height: 28px;
+  border-radius: 999px;
+  padding: 0.3rem 0.68rem;
+  background: rgba(255, 239, 245, 0.92);
+  box-shadow: inset 0 0 0 1px rgba(140, 116, 126, 0.08);
   color: var(--muted);
-  font-size: 0.86rem;
-  text-align: center;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
 }
 
 .todoRow {
@@ -561,6 +582,15 @@
   margin-bottom: 0.45rem;
 }
 
+.stickerToolbar {
+  position: absolute;
+  top: -12px;
+  left: 50%;
+  z-index: 2;
+  margin-bottom: 0;
+  transform: translateX(-50%);
+}
+
 .photoFrame {
   position: relative;
   border-radius: 15px;
@@ -588,37 +618,62 @@
 }
 
 .stickerCard {
-  min-width: 104px;
-  display: grid;
-  gap: 0.18rem;
-  justify-items: start;
-  padding: 0.6rem 0.7rem 0.82rem;
-  border-radius: 22px;
-  box-shadow:
-    var(--shadow-card),
-    0 0 0 1px rgba(255, 255, 255, 0.5);
+  width: 92px;
+  height: 92px;
 }
 
-.stickerCard::after {
+.stickerCard[data-motif="ribbon"] {
+  width: 104px;
+  height: 88px;
+}
+
+.stickerDecal {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: grid;
+  place-items: center;
+  filter: drop-shadow(0 18px 24px rgba(191, 163, 176, 0.18));
+}
+
+.stickerDecal::before,
+.stickerDecal::after {
   content: "";
   position: absolute;
-  inset: 10px 12px auto auto;
-  width: 36px;
-  height: 14px;
+  inset: 10px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.34);
-  filter: blur(0.2px);
+  background:
+    radial-gradient(circle at 32% 28%, rgba(255, 255, 255, 0.98), transparent 42%),
+    radial-gradient(circle at 68% 72%, rgba(255, 255, 255, 0.7), transparent 40%),
+    var(--sticker-tint, rgba(255, 214, 230, 0.92));
+  box-shadow:
+    inset 0 0 0 1px rgba(140, 116, 126, 0.08),
+    0 8px 18px rgba(255, 232, 240, 0.26);
 }
 
-.stickerCard span {
-  font-size: 1.45rem;
-  line-height: 1;
+.stickerCard[data-motif="ribbon"] .stickerDecal::before,
+.stickerCard[data-motif="ribbon"] .stickerDecal::after {
+  inset: 14px 8px;
+  border-radius: 26px;
 }
 
-.stickerCard strong {
-  font-size: 1rem;
-  font-weight: 700;
-  letter-spacing: 0.02em;
+.stickerDecal::after {
+  inset: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.stickerHalo {
+  position: absolute;
+  inset: 14px;
+  border-radius: 999px;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.55), transparent 70%);
+  mix-blend-mode: screen;
+}
+
+.stickerCard[data-motif="ribbon"] .stickerHalo {
+  inset: 18px 12px;
+  border-radius: 26px;
 }
 
 .stickerPicker {
@@ -638,10 +693,13 @@
 }
 
 .stickerMotif {
-  width: 38px;
-  height: 38px;
+  position: relative;
+  z-index: 1;
+  width: 64px;
+  height: 64px;
   display: grid;
   place-items: center;
+  color: rgba(90, 75, 82, 0.98);
 }
 
 .boardEmpty {
@@ -836,8 +894,8 @@
     width: 170px;
   }
 
-  .plannerTimeRow {
-    grid-template-columns: auto 1fr auto 1fr auto;
+  .plannerMainRow {
+    grid-template-columns: 1fr;
   }
 
   .boardToolbarMain,
@@ -860,12 +918,7 @@
 }
 
 @media (max-width: 680px) {
-  .plannerTimeRow {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .plannerClock,
-  .plannerDivider {
-    display: none;
+  .plannerTimeStack {
+    grid-template-columns: 1fr;
   }
 }

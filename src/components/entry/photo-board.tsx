@@ -1,6 +1,6 @@
 "use client";
 
-import type { ChangeEvent, PointerEvent as ReactPointerEvent } from "react";
+import type { CSSProperties, ChangeEvent, PointerEvent as ReactPointerEvent } from "react";
 import { useEffect, useRef, useState } from "react";
 import NextImage from "next/image";
 import TextareaAutosize from "react-textarea-autosize";
@@ -141,15 +141,18 @@ function StickerCard({
   onRotate: (id: string) => void;
   onDelete: (id: string) => void;
 }) {
+  const motif = stickerKind(sticker.payload.stickerId);
+
   return (
     <article
       className={styles.stickerCard}
       style={{
         transform: `translate(${sticker.styleConfig.x}px, ${sticker.styleConfig.y}px) rotate(${sticker.styleConfig.presetRotation}deg)`,
         zIndex: sticker.styleConfig.zIndex,
-        background: sticker.payload.tint
-      }}
-      >
+        "--sticker-tint": sticker.payload.tint
+      } as CSSProperties}
+      data-motif={motif}
+    >
       <div className={styles.stickerToolbar}>
         <button
           type="button"
@@ -165,10 +168,12 @@ function StickerCard({
           <X size={14} />
         </button>
       </div>
-      <span className={styles.stickerMotif}>
-        <ScrapIcon kind={stickerKind(sticker.payload.stickerId)} size={28} />
-      </span>
-      <strong>{sticker.payload.label}</strong>
+      <div className={styles.stickerDecal}>
+        <span className={styles.stickerHalo} />
+        <span className={styles.stickerMotif}>
+          <ScrapIcon kind={motif} size={46} />
+        </span>
+      </div>
     </article>
   );
 }
@@ -208,8 +213,10 @@ export function PhotoBoard({
       const rect = boardRef.current?.getBoundingClientRect();
       if (!rect) return;
 
-      const x = clamp(event.clientX - rect.left - dragging.offsetX, 8, rect.width - 180);
-      const y = clamp(event.clientY - rect.top - dragging.offsetY, 8, rect.height - 210);
+      const frameWidth = dragging.kind === "photo" ? 180 : 94;
+      const frameHeight = dragging.kind === "photo" ? 210 : 94;
+      const x = clamp(event.clientX - rect.left - dragging.offsetX, 8, rect.width - frameWidth);
+      const y = clamp(event.clientY - rect.top - dragging.offsetY, 8, rect.height - frameHeight);
 
       if (dragging.kind === "photo") {
         onPhotosChange(
