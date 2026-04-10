@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import TextareaAutosize from "react-textarea-autosize";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
-import { Trash2 } from "lucide-react";
+import { ArrowLeft, Trash2 } from "lucide-react";
 import { formatEntryDate } from "@/lib/date";
 import { createBlankEntry } from "@/lib/entry";
 import {
@@ -132,14 +132,18 @@ export function EntryEditor({ entryDate }: { entryDate: string }) {
   return (
     <div className={styles.editorPage} data-theme-preset={record.themeConfig.preset}>
       <section className={styles.metaCard}>
-        <div>
-          <span className={styles.sectionTag}>page</span>
+        <div className={styles.metaIntro}>
+          <button type="button" className={styles.backButton} onClick={() => router.push("/archive")}>
+            <ArrowLeft size={15} />
+            Archive
+          </button>
+          <span className={styles.sectionTag}>daily page</span>
           <h3>{formatEntryDate(entryDate)}</h3>
-          <p>Keep the structure neat while still leaving room for photos, stickers, and pen notes.</p>
+          <p>Write first, decorate after. The page keeps the main areas in one clean flow.</p>
         </div>
         <div className={styles.metaActions}>
           <SaveStateChip state={status?.state ?? "saved"} />
-          <button type="button" className={styles.secondaryButton} onClick={handleDelete}>
+          <button type="button" className={styles.ghostButton} onClick={handleDelete}>
             <Trash2 size={15} />
             Delete page
           </button>
@@ -150,56 +154,69 @@ export function EntryEditor({ entryDate }: { entryDate: string }) {
         <div className={styles.sectionHeader}>
           <div>
             <span className={styles.sectionTag}>cover</span>
-            <h4>Title</h4>
+            <h4>Page setup</h4>
           </div>
         </div>
-        <input
-          className={styles.titleInput}
-          value={record.title}
-          onChange={(event) => updateRecord((current) => ({ ...current, title: event.target.value }))}
-          placeholder="Name this page"
-        />
+        <div className={styles.coverLayout}>
+          <div className={styles.titlePanel}>
+            <label className={styles.fieldLabel}>Title</label>
+            <input
+              className={styles.titleInput}
+              value={record.title}
+              onChange={(event) => updateRecord((current) => ({ ...current, title: event.target.value }))}
+              placeholder="Name this page"
+            />
+          </div>
 
-        <div className={styles.moodRow}>
-          {moodOptions.map((mood) => (
-            <button
-              key={mood.id}
-              type="button"
-              className={record.mood === mood.id ? styles.moodActive : styles.moodChip}
-              onClick={() =>
-                updateRecord((current) => ({
-                  ...current,
-                  mood: current.mood === mood.id ? undefined : mood.id
-                }))
-              }
-              style={{ "--chip-accent": mood.accent } as CSSProperties}
-            >
-              {mood.label}
-            </button>
-          ))}
-        </div>
+          <div className={styles.sideSettings}>
+            <div className={styles.settingsBlock}>
+              <label className={styles.fieldLabel}>Mood</label>
+              <div className={styles.moodRow}>
+                {moodOptions.map((mood) => (
+                  <button
+                    key={mood.id}
+                    type="button"
+                    className={record.mood === mood.id ? styles.moodActive : styles.moodChip}
+                    onClick={() =>
+                      updateRecord((current) => ({
+                        ...current,
+                        mood: current.mood === mood.id ? undefined : mood.id
+                      }))
+                    }
+                    style={{ "--chip-accent": mood.accent } as CSSProperties}
+                  >
+                    {mood.label}
+                  </button>
+                ))}
+              </div>
+            </div>
 
-        <div className={styles.themeRow}>
-          {themePresets.map((theme) => (
-            <button
-              key={theme.id}
-              type="button"
-              className={record.themeConfig.preset === theme.id ? styles.themeActive : styles.themeChip}
-              onClick={() =>
-                updateRecord((current) => ({
-                  ...current,
-                  themeConfig: {
-                    preset: theme.id,
-                    texture: theme.texture,
-                    boardTone: theme.boardTone
-                  }
-                }))
-              }
-            >
-              <strong>{theme.label}</strong>
-              <span>{theme.description}</span>
-            </button>
-          ))}
+            <div className={styles.settingsBlock}>
+              <label className={styles.fieldLabel}>Paper style</label>
+              <div className={styles.themeRow}>
+                {themePresets.map((theme) => (
+                  <button
+                    key={theme.id}
+                    type="button"
+                    className={record.themeConfig.preset === theme.id ? styles.themeActive : styles.themeChip}
+                    onClick={() =>
+                      updateRecord((current) => ({
+                        ...current,
+                        themeConfig: {
+                          preset: theme.id,
+                          texture: theme.texture,
+                          boardTone: theme.boardTone
+                        }
+                      }))
+                    }
+                  >
+                    <strong>{theme.label}</strong>
+                    <span>{theme.description}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -273,6 +290,7 @@ export function EntryEditor({ entryDate }: { entryDate: string }) {
           <div>
             <span className={styles.sectionTag}>board</span>
             <h4>Photo board</h4>
+            <p className={styles.sectionHint}>Keep this for photos and a few decorations only.</p>
           </div>
         </div>
         <PhotoBoard
@@ -288,6 +306,7 @@ export function EntryEditor({ entryDate }: { entryDate: string }) {
           <div>
             <span className={styles.sectionTag}>pen</span>
             <h4>Handwriting</h4>
+            <p className={styles.sectionHint}>Use this area when typing is not enough.</p>
           </div>
         </div>
         <HandwritingPad

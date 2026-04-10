@@ -2,8 +2,9 @@
   --entry-accent: rgba(255, 221, 234, 0.72);
   --entry-glow: rgba(250, 217, 233, 0.34);
   --board-base: rgba(255, 250, 252, 0.96);
+  padding: 1rem;
   display: grid;
-  gap: 1rem;
+  gap: 1.1rem;
 }
 
 .editorPage[data-theme-preset="mint"] {
@@ -28,12 +29,12 @@
 .entryCard {
   background: rgba(255, 251, 252, 0.95);
   border: 1px solid rgba(140, 116, 126, 0.14);
-  border-radius: 30px;
+  border-radius: 26px;
   box-shadow: var(--shadow-card);
 }
 
 .metaCard {
-  padding: 1.15rem;
+  padding: 1rem 1.1rem;
   display: flex;
   justify-content: space-between;
   gap: 1rem;
@@ -55,7 +56,7 @@
 
 .metaCard h3,
 .sectionHeader h4 {
-  margin: 0.55rem 0 0.2rem;
+  margin: 0.45rem 0 0.18rem;
   font-family: "Newsreader", serif;
 }
 
@@ -72,11 +73,11 @@
 
 .sectionTag {
   display: inline-flex;
-  padding: 0.38rem 0.72rem;
-  border-radius: 999px;
-  background: var(--entry-accent);
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
   color: var(--muted);
-  font-size: 0.76rem;
+  font-size: 0.72rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -100,8 +101,31 @@
   gap: 0.7rem;
 }
 
+.metaIntro {
+  display: grid;
+  gap: 0.2rem;
+}
+
 .metaActions {
   justify-content: flex-end;
+  align-items: center;
+}
+
+.backButton,
+.ghostButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  width: fit-content;
+  border: none;
+  border-radius: 999px;
+  padding: 0.54rem 0.8rem;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: inset 0 0 0 1px rgba(140, 116, 126, 0.1);
+}
+
+.ghostButton {
+  color: var(--muted);
 }
 
 .primaryButton,
@@ -208,15 +232,20 @@
 }
 
 .entryCard {
-  padding: 1.1rem;
+  padding: 1.1rem 1.15rem;
   display: grid;
-  gap: 1rem;
+  gap: 0.9rem;
 }
 
 .sectionHeader {
   display: flex;
   justify-content: space-between;
   align-items: start;
+}
+
+.sectionHint {
+  margin-top: 0.2rem;
+  font-size: 0.88rem;
 }
 
 .titleInput,
@@ -244,12 +273,12 @@
 
 .titleInput {
   padding: 1rem 1.1rem;
-  font-size: 1.16rem;
+  font-size: 1.1rem;
 }
 
 .diaryInput {
   padding: 1rem 1.1rem;
-  line-height: 1.78;
+  line-height: 1.8;
   resize: none;
 }
 
@@ -259,23 +288,50 @@
   gap: 1rem;
 }
 
+.coverLayout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(280px, 0.85fr);
+  gap: 1rem;
+  align-items: start;
+}
+
+.titlePanel,
+.settingsBlock {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.sideSettings {
+  display: grid;
+  gap: 0.95rem;
+}
+
+.fieldLabel {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--muted);
+  letter-spacing: 0.03em;
+}
+
 .themeRow {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.55rem;
 }
 
 .themeChip,
 .themeActive {
   display: grid;
-  gap: 0.35rem;
+  gap: 0.22rem;
   text-align: left;
+  min-height: 94px;
 }
 
 .themeChip span,
 .themeActive span {
   color: var(--muted);
-  font-size: 0.88rem;
-  line-height: 1.45;
+  font-size: 0.8rem;
+  line-height: 1.4;
 }
 
 .moodChip {
@@ -296,7 +352,7 @@
   display: grid;
   gap: 0.7rem;
   padding: 0.88rem;
-  border-radius: 22px;
+  border-radius: 20px;
   background: rgba(255, 255, 255, 0.9);
   box-shadow: inset 0 0 0 1px rgba(140, 116, 126, 0.1);
 }
@@ -428,6 +484,7 @@
   align-items: center;
   gap: 0.45rem;
   justify-self: start;
+  padding-inline: 0.88rem;
 }
 
 .photoBoardSection {
@@ -438,28 +495,33 @@
 .boardToolbar {
   display: grid;
   align-items: center;
-  gap: 0.8rem;
+  gap: 0.7rem;
 }
 
 .boardToolbarMain {
   align-items: center;
   justify-content: space-between;
+  gap: 0.75rem;
 }
 
 .layoutRow {
   align-items: center;
+  gap: 0.4rem;
 }
 
 .layoutChip,
 .layoutActive {
   display: inline-flex;
   align-items: center;
-  gap: 0.42rem;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
 }
 
 .photoBoard {
   min-height: 380px;
-  border-radius: 30px;
+  border-radius: 26px;
   position: relative;
   overflow: hidden;
   background:
@@ -479,60 +541,6 @@
     linear-gradient(90deg, rgba(140, 116, 126, 0.03) 1px, transparent 1px);
   background-size: 24px 24px;
   pointer-events: none;
-}
-
-.photoBoard::after {
-  content: "";
-  position: absolute;
-  right: 1.15rem;
-  top: 1rem;
-  width: 76px;
-  height: 24px;
-  border-radius: 999px;
-  background: rgba(225, 243, 203, 0.48);
-  box-shadow: inset 0 0 0 1px rgba(140, 116, 126, 0.08);
-  transform: rotate(8deg);
-  pointer-events: none;
-}
-
-.boardPinNote {
-  position: absolute;
-  left: 1rem;
-  top: 1rem;
-  max-width: 220px;
-  border-radius: 20px;
-  padding: 0.88rem 0.95rem;
-  background: rgba(255, 252, 253, 0.92);
-  box-shadow:
-    0 14px 30px rgba(177, 151, 164, 0.16),
-    inset 0 0 0 1px rgba(140, 116, 126, 0.08);
-  z-index: 1;
-}
-
-.boardPinNote::before {
-  content: "";
-  position: absolute;
-  top: -10px;
-  left: 22px;
-  width: 58px;
-  height: 18px;
-  border-radius: 999px;
-  background: rgba(255, 230, 178, 0.84);
-  transform: rotate(-8deg);
-  box-shadow: inset 0 0 0 1px rgba(170, 141, 108, 0.1);
-}
-
-.boardPinNote strong {
-  display: block;
-  font-size: 0.88rem;
-  letter-spacing: 0.04em;
-}
-
-.boardPinNote p {
-  margin: 0.3rem 0 0;
-  color: var(--muted);
-  font-size: 0.84rem;
-  line-height: 1.55;
 }
 
 .photoCard,
@@ -646,9 +654,11 @@
 }
 
 .stickerPicker {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.38rem;
+  display: inline-grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  padding: 0;
 }
 
 .stickerPickerIcon {
@@ -681,8 +691,8 @@
   position: absolute;
   inset: auto 1rem 1rem 1rem;
   border-radius: 18px;
-  padding: 0.95rem 1rem;
-  background: rgba(255, 255, 255, 0.9);
+  padding: 0.88rem 0.95rem;
+  background: rgba(255, 255, 255, 0.88);
 }
 
 .boardEmpty p {
@@ -857,7 +867,8 @@
 
 @media (max-width: 920px) {
   .grid,
-  .themeRow {
+  .themeRow,
+  .coverLayout {
     grid-template-columns: 1fr;
   }
 
@@ -877,10 +888,6 @@
   .canvasControlRow {
     flex-direction: column;
     align-items: stretch;
-  }
-
-  .boardPinNote {
-    max-width: calc(100% - 2rem);
   }
 
   .canvas {

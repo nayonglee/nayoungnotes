@@ -383,7 +383,7 @@ export function PhotoBoard({
     <div className={styles.photoBoardSection}>
       <div className={styles.boardToolbar}>
         <div className={styles.boardToolbarMain}>
-          <button type="button" className={styles.primaryButton} onClick={() => inputRef.current?.click()}>
+          <button type="button" className={styles.secondaryButton} onClick={() => inputRef.current?.click()}>
             <ImagePlus size={16} />
             Add photos
           </button>
@@ -397,9 +397,10 @@ export function PhotoBoard({
                   type="button"
                   className={layoutPreset === layout.id ? styles.layoutActive : styles.layoutChip}
                   onClick={() => applyLayout(layout.id)}
+                  aria-label={layout.label}
+                  title={layout.label}
                 >
                   <Icon size={14} />
-                  {layout.label}
                 </button>
               );
             })}
@@ -412,6 +413,8 @@ export function PhotoBoard({
               key={sticker.id}
               type="button"
               className={styles.stickerPicker}
+              aria-label={sticker.label}
+              title={sticker.label}
               onClick={() =>
                 onStickersChange([
                   ...stickers,
@@ -429,7 +432,6 @@ export function PhotoBoard({
               <span className={styles.stickerPickerIcon}>
                 <ScrapIcon kind={stickerKind(sticker.id)} size={18} />
               </span>
-              {sticker.label}
             </button>
           ))}
         </div>
@@ -437,11 +439,6 @@ export function PhotoBoard({
       </div>
 
       <div className={styles.photoBoard} ref={boardRef}>
-        <div className={styles.boardPinNote}>
-          <strong>Scrap board</strong>
-          <p>Start with a layout preset, then nudge only the cards you want to fine-tune.</p>
-        </div>
-
         {photos.map((photo) => (
           <PhotoCard
             key={photo.id}
@@ -499,8 +496,8 @@ export function PhotoBoard({
 
         {photos.length === 0 && stickers.length === 0 ? (
           <div className={styles.boardEmpty}>
-            <strong>Start your board</strong>
-            <p>Drop in photos, then layer hearts, stars, ribbons, and notes on top.</p>
+            <strong>Start with a photo</strong>
+            <p>Add a few images first, then place only the decorations you really want.</p>
           </div>
         ) : null}
       </div>
