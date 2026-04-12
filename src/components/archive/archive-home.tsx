@@ -1,10 +1,9 @@
 "use client";
 
 import type {
-  TouchEvent as ReactTouchEvent,
-  WheelEvent as ReactWheelEvent
+  CSSProperties
 } from "react";
-import { startTransition, useMemo, useRef, useState } from "react";
+import { startTransition, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { addMonths, format, parseISO, subMonths } from "date-fns";
@@ -24,8 +23,8 @@ export function ArchiveHome() {
   const router = useRouter();
   const viewer = useAuthStore((state) => state.viewer);
   const [anchorDate, setAnchorDate] = useState(todayKey());
-  const [coverOpened, setCoverOpened] = useState(false);
-  const touchStartY = useRef<number | null>(null);
+  const [coverProgress, setCoverProgress] = useState(0);
+  const stageRef = useRef<HTMLElement | null>(null);
   const todayDate = todayKey();
 
   const query = useQuery({
@@ -52,38 +51,52 @@ export function ArchiveHome() {
     });
   };
 
+  useEffect(() => {
+    const updateProgress = () => {
+      const stage = stageRef.current;
+      if (!stage) return;
+      const rect = stage.getBoundingClientRect();
+      const scrollable = Math.max(rect.height - window.innerHeight, 1);
+      const next = Math.max(0, Math.min(1, -rect.top / scrollable));
+      setCoverProgress((current) => (Math.abs(current - next) > 0.01 ? next : current));
+    };
+
+    updateProgress();
+    window.addEventListener("scroll", updateProgress, { passive: true });
+    window.addEventListener("resize", updateProgress);
+    return () => {
+      window.removeEventListener("scroll", updateProgress);
+      window.removeEventListener("resize", updateProgress);
+    };
+  }, []);
+
+  const coverOpened = coverProgress > 0.16;
+  const openAmount = Number(coverProgress.toFixed(3));
+  const coverBookStyle = {
+    transform: `translateX(${openAmount * -34}%) rotateY(${-104 * openAmount}deg)`,
+    opacity: Math.max(0.08, 1 - openAmount * 0.92)
+  } satisfies CSSProperties;
+  const spreadStyle = {
+    opacity: Math.min(1, 0.06 + openAmount * 1.08),
+    transform: `scale(${0.94 + openAmount * 0.06})`
+  } satisfies CSSProperties;
+
   const openCover = () => {
-    if (coverOpened) return;
-    setCoverOpened(true);
-  };
-
-  const handleCoverWheel = (event: ReactWheelEvent<HTMLElement>) => {
-    if (coverOpened || event.deltaY <= 6) return;
-    openCover();
-  };
-
-  const handleTouchStart = (event: ReactTouchEvent<HTMLElement>) => {
-    touchStartY.current = event.touches[0]?.clientY ?? null;
-  };
-
-  const handleTouchEnd = (event: ReactTouchEvent<HTMLElement>) => {
-    if (coverOpened || touchStartY.current === null) return;
-    const endY = event.changedTouches[0]?.clientY ?? touchStartY.current;
-    if (touchStartY.current - endY > 24) openCover();
-    touchStartY.current = null;
+    const stage = stageRef.current;
+    if (!stage) return;
+    const targetTop = window.scrollY + stage.getBoundingClientRect().top + window.innerHeight * 0.78;
+    window.scrollTo({ top: targetTop, behavior: "smooth" });
   };
 
   return (
     <div className={styles.page}>
       <section
+        ref={stageRef}
         className={styles.coverStage}
         data-open={coverOpened}
-        onWheel={handleCoverWheel}
-        onTouchStart={handleTouchStart}
-        onTouchEnd={handleTouchEnd}
       >
         <div className={styles.bookScene}>
-          <div className={styles.calendarSpread} data-open={coverOpened}>
+          <div className={styles.calendarSpread} data-open={coverOpened} style={spreadStyle}>
             <div className={styles.spreadNotebook}>
               <div className={`${styles.spreadPage} ${styles.spreadPageLeft}`} />
               <div className={`${styles.spreadPage} ${styles.spreadPageRight}`} />
@@ -174,7 +187,7 @@ export function ArchiveHome() {
             </div>
           </div>
 
-          <div className={styles.coverBook} data-open={coverOpened}>
+          <div className={styles.coverBook} data-open={coverOpened} style={coverBookStyle}>
             <div className={styles.coverSpine}>
               <div className={styles.coverCharm}>
                 <span className={styles.coverChain} />
@@ -247,7 +260,7 @@ export function ArchiveHome() {
           </button>
           <span className={styles.scrollHint}>
             <ChevronDown size={14} />
-            Or scroll to open
+            Scroll down to open
           </span>
         </div>
       </section>

@@ -13,9 +13,7 @@
 
 .coverStage {
   position: relative;
-  min-height: 100svh;
-  display: grid;
-  place-items: center;
+  min-height: 190svh;
   padding: 1.4rem;
   overflow: hidden;
   perspective: 1800px;
@@ -39,19 +37,19 @@
 }
 
 .bookScene {
-  position: relative;
+  position: sticky;
+  top: 0;
   width: min(100%, 980px);
-  min-height: 720px;
+  min-height: 100svh;
   display: grid;
   place-items: center;
+  margin-inline: auto;
 }
 
 .calendarSpread {
   position: absolute;
   width: min(100%, 980px);
   min-height: 640px;
-  opacity: 0;
-  transform: scale(0.94);
   transition:
     opacity 560ms ease,
     transform 720ms cubic-bezier(0.2, 0.82, 0.2, 1);
@@ -59,7 +57,6 @@
 
 .calendarSpread[data-open="true"] {
   opacity: 1;
-  transform: scale(1);
 }
 
 .spreadNotebook {
@@ -345,8 +342,6 @@
 }
 
 .coverBook[data-open="true"] {
-  transform: translateX(-34%) rotateY(-104deg);
-  opacity: 0.08;
   pointer-events: none;
 }
 
@@ -1119,7 +1114,7 @@
   }
 
   .bookScene {
-    min-height: 620px;
+    min-height: 100svh;
   }
 
   .coverBook {
@@ -1161,10 +1156,11 @@
 @media (max-width: 680px) {
   .coverStage {
     padding: 0.9rem;
+    min-height: 165svh;
   }
 
   .bookScene {
-    min-height: 560px;
+    min-height: 100svh;
   }
 
   .coverBook {

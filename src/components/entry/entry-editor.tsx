@@ -212,6 +212,7 @@ export function EntryEditor({ entryDate }: { entryDate: string }) {
                     <h4>Baseball pocket</h4>
                   </div>
                   <BaseballNote
+                    entryDate={entryDate}
                     payload={record.baseball.payload}
                     onChange={(payload) =>
                       updateRecord((current) => ({
