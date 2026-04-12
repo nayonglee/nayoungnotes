@@ -23,6 +23,7 @@ import { BaseballNote } from "@/components/entry/baseball-note";
 import { HandwritingPad } from "@/components/entry/handwriting-pad";
 import { PhotoBoard } from "@/components/entry/photo-board";
 import { SaveStateChip } from "@/components/entry/save-state-chip";
+import { TeachingBoard } from "@/components/entry/teaching-board";
 import { TimePlanner } from "@/components/entry/time-planner";
 import { TodoEditor } from "@/components/entry/todo-editor";
 import styles from "@/styles/entry.module.css";
@@ -191,41 +192,47 @@ export function EntryEditor({ entryDate }: { entryDate: string }) {
                 />
               </article>
 
-              <section className={styles.gridSingle}>
-                <article className={styles.entryCard}>
-                  <div className={styles.sectionHeader}>
-                    <h4>Checklist</h4>
-                  </div>
-                  <TodoEditor
-                    items={record.todo.payload.items}
-                    onChange={(items) =>
-                      updateRecord((current) => ({
-                        ...current,
-                        todo: { ...current.todo, payload: { items } }
-                      }))
-                    }
-                  />
-                </article>
+              <article className={styles.entryCard}>
+                <div className={styles.sectionHeader}>
+                  <h4>Teaching board</h4>
+                </div>
+                <TeachingBoard
+                  entryDate={entryDate}
+                  payload={record.teaching.payload}
+                  onChange={(payload) =>
+                    updateRecord((current) => ({
+                      ...current,
+                      teaching: {
+                        ...current.teaching,
+                        payload
+                      }
+                    }))
+                  }
+                  onApplyTemplate={({ teaching, planner, todo }) =>
+                    updateRecord((current) => ({
+                      ...current,
+                      teaching: { ...current.teaching, payload: teaching },
+                      planner: { ...current.planner, payload: { blocks: planner } },
+                      todo: { ...current.todo, payload: { items: todo } }
+                    }))
+                  }
+                />
+              </article>
 
-                <article className={styles.entryCard}>
-                  <div className={styles.sectionHeader}>
-                    <h4>Baseball pocket</h4>
-                  </div>
-                  <BaseballNote
-                    entryDate={entryDate}
-                    payload={record.baseball.payload}
-                    onChange={(payload) =>
-                      updateRecord((current) => ({
-                        ...current,
-                        baseball: {
-                          ...current.baseball,
-                          payload
-                        }
-                      }))
-                    }
-                  />
-                </article>
-              </section>
+              <article className={styles.entryCard}>
+                <div className={styles.sectionHeader}>
+                  <h4>Daily anchors</h4>
+                </div>
+                <TodoEditor
+                  items={record.todo.payload.items}
+                  onChange={(items) =>
+                    updateRecord((current) => ({
+                      ...current,
+                      todo: { ...current.todo, payload: { items } }
+                    }))
+                  }
+                />
+              </article>
             </div>
 
             <div className={styles.spreadPage}>
@@ -245,6 +252,25 @@ export function EntryEditor({ entryDate }: { entryDate: string }) {
                   }))
                 }
               />
+              </article>
+
+              <article className={styles.entryCard}>
+                <div className={styles.sectionHeader}>
+                  <h4>Baseball pocket</h4>
+                </div>
+                <BaseballNote
+                  entryDate={entryDate}
+                  payload={record.baseball.payload}
+                  onChange={(payload) =>
+                    updateRecord((current) => ({
+                      ...current,
+                      baseball: {
+                        ...current.baseball,
+                        payload
+                      }
+                    }))
+                  }
+                />
               </article>
 
               <section className={styles.entryCard}>

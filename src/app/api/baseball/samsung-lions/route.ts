@@ -12,12 +12,14 @@ const baseUrl = "https://www.samsunglions.com/m/score/score_2_calendar.asp?srchg
 
 function decodeHtml(value: string) {
   return value
-    .replace(/&nbsp;/g, " ")
-    .replace(/&amp;/g, "&")
-    .replace(/&#39;/g, "'")
-    .replace(/&quot;/g, '"')
-    .replace(/&lt;/g, "<")
-    .replace(/&gt;/g, ">");
+    .replace(/&nbsp;/gi, " ")
+    .replace(/&amp;/gi, "&")
+    .replace(/&#39;/gi, "'")
+    .replace(/&quot;/gi, '"')
+    .replace(/&lt;/gi, "<")
+    .replace(/&gt;/gi, ">")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 function normalizeDateParam(dateParam: string | null) {
@@ -39,31 +41,93 @@ function buildUrl(date: Date) {
   return `${baseUrl}&strMonth=${month}&strYear=${year}`;
 }
 
-function stripTagText(line: string) {
-  return decodeHtml(line.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim());
+async function readPageText(url: string) {
+  const response = await fetch(url, {
+    headers: {
+      "user-agent": "Mozilla/5.0 nayoungnotes/1.0"
+    },
+    next: { revalidate: 60 * 60 * 3 }
+  });
+
+  if (!response.ok) throw new Error(`Failed to fetch ${url}`);
+
+  const buffer = await response.arrayBuffer();
+  const decoder = new TextDecoder("euc-kr", { fatal: false });
+  const decoded = decoder.decode(buffer);
+  return decoded;
+}
+
+function toCandidateLines(html: string) {
+  return decodeHtml(
+    html
+      .replace(/<\/li>/gi, "\n")
+      .replace(/<\/tr>/gi, "\n")
+      .replace(/<br\s*\/?>/gi, "\n")
+      .replace(/<[^>]+>/g, " ")
+  )
+    .split(/\n+/)
+    .map((line) => line.replace(/\s+/g, " ").trim())
+    .filter(Boolean);
+}
+
+function parseScheduledGame(rest: string, venue: string, date: string, time: string) {
+  const scheduledMatch = rest.match(/삼성\s*라이온즈\s*(?:VS|vs|대)\s*(.+?)\s*(예정|경기전|취소|우천취소)?$/);
+  if (scheduledMatch) {
+    return {
+      date,
+      time,
+      venue,
+      opponent: scheduledMatch[1].trim(),
+      status: scheduledMatch[2]?.trim() || "Scheduled"
+    } satisfies GameInfo;
+  }
+
+  const homeAwayMatch = rest.match(/^삼성\s*라이온즈\s+(\d+:\d+)\s+(.+?)\s+(승|패|무)$/);
+  if (homeAwayMatch) {
+    return {
+      date,
+      time,
+      venue,
+      opponent: homeAwayMatch[2].trim(),
+      status: `${homeAwayMatch[1]} ${homeAwayMatch[3]}`
+    } satisfies GameInfo;
+  }
+
+  const reverseMatch = rest.match(/^(.+?)\s+(\d+:\d+)\s+삼성\s*라이온즈\s+(승|패|무)$/);
+  if (reverseMatch) {
+    return {
+      date,
+      time,
+      venue,
+      opponent: reverseMatch[1].trim(),
+      status: `${reverseMatch[2]} ${reverseMatch[3]}`
+    } satisfies GameInfo;
+  }
+
+  return null;
 }
 
 function parseGames(html: string, year: number) {
-  const items = [...html.matchAll(/<li[^>]*>([\s\S]*?)<\/li>/gi)];
+  const lines = toCandidateLines(html);
   const games: GameInfo[] = [];
 
-  for (const item of items) {
-    const text = stripTagText(item[1] ?? "");
-    if (!text.includes("삼성 라이온즈") || !text.includes("VS")) continue;
+  for (const line of lines) {
+    if (!line.includes("삼성")) continue;
 
-    const match = text.match(
-      /(\d{2})월(\d{2})일\s+(\d{2}:\d{2})\s+\([^)]+\)\s+(.+?)\s+삼성 라이온즈\s+VS\s+(.+?)\s+(.+)/
-    );
-    if (!match) continue;
+    const headMatch = line.match(/^(\d{2})월\s*(\d{2})일\s+(\d{2}:\d{2})\s+\([^)]+\)\s+(.+)$/);
+    if (!headMatch) continue;
 
-    const [, month, day, time, venue, opponent, status] = match;
-    games.push({
-      date: `${year}-${month}-${day}`,
-      time,
-      venue: venue.trim(),
-      opponent: opponent.trim(),
-      status: status.trim()
-    });
+    const [, month, day, time, remainder] = headMatch;
+    const date = `${year}-${month}-${day}`;
+    const cleanedRemainder = remainder.replace(/Image:/gi, " ").replace(/\s+/g, " ").trim();
+
+    const venueMatch = cleanedRemainder.match(/^(.+?)\s+(삼성\s*라이온즈.+)$/);
+    if (!venueMatch) continue;
+
+    const venue = venueMatch[1].trim();
+    const rest = venueMatch[2].trim();
+    const parsed = parseScheduledGame(rest, venue, date, time);
+    if (parsed) games.push(parsed);
   }
 
   return games;
@@ -75,12 +139,12 @@ function pickClosestGame(games: GameInfo[], targetDate: string) {
 
   const future = games
     .filter((game) => game.date > targetDate)
-    .sort((left, right) => left.date.localeCompare(right.date))[0];
+    .sort((left, right) => `${left.date} ${left.time}`.localeCompare(`${right.date} ${right.time}`))[0];
   if (future) return future;
 
   return games
     .filter((game) => game.date < targetDate)
-    .sort((left, right) => right.date.localeCompare(left.date))[0];
+    .sort((left, right) => `${right.date} ${right.time}`.localeCompare(`${left.date} ${left.time}`))[0];
 }
 
 export async function GET(request: Request) {
@@ -95,17 +159,10 @@ export async function GET(request: Request) {
     const responses = await Promise.all(
       months.map(async (monthDate) => {
         const url = buildUrl(monthDate);
-        const response = await fetch(url, {
-          headers: {
-            "user-agent": "Mozilla/5.0 nayoungnotes/1.0"
-          },
-          next: { revalidate: 60 * 60 * 3 }
-        });
-        if (!response.ok) throw new Error(`Failed to fetch ${url}`);
         return {
           url,
           year: monthDate.getFullYear(),
-          html: await response.text()
+          html: await readPageText(url)
         };
       })
     );
@@ -113,7 +170,7 @@ export async function GET(request: Request) {
     const games = responses.flatMap((entry) => parseGames(entry.html, entry.year));
     const uniqueGames = Array.from(
       new Map(games.map((game) => [`${game.date}-${game.time}-${game.venue}-${game.opponent}`, game])).values()
-    ).sort((left, right) => `${left.date} ${left.time}`.localeCompare(`${right.date} ${right.time}`));
+    );
 
     return NextResponse.json({
       team: "Samsung Lions",

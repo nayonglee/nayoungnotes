@@ -29,7 +29,7 @@ drop constraint if exists entry_items_item_type_check;
 
 alter table public.entry_items
 add constraint entry_items_item_type_check
-check (item_type in ('text', 'todo', 'planner', 'photo', 'drawing', 'sticker', 'baseball'));
+check (item_type in ('text', 'todo', 'planner', 'photo', 'drawing', 'sticker', 'baseball', 'teaching'));
 
 create index if not exists entries_user_date_idx on public.entries (user_id, entry_date desc);
 create index if not exists entry_items_entry_order_idx on public.entry_items (entry_id, order_index asc);

@@ -25,8 +25,10 @@ export type EntryItemType =
   | "photo"
   | "drawing"
   | "sticker"
-  | "baseball";
+  | "baseball"
+  | "teaching";
 export type SaveState = "saved" | "syncing" | "offline-draft" | "error" | "idle";
+export type DayType = "school" | "teaching" | "prep" | "reset";
 
 export interface ThemeConfig {
   preset: ThemePreset;
@@ -72,6 +74,21 @@ export interface BaseballPayload {
   player: string;
   note: string;
   moment: string;
+}
+
+export interface TeachingSubject {
+  id: string;
+  label: string;
+  checked: boolean;
+  note: string;
+}
+
+export interface TeachingPayload {
+  dayType: DayType;
+  medSchoolFocus: string;
+  academyWork: string;
+  pokePrompt: string;
+  subjects: TeachingSubject[];
 }
 
 export interface PhotoPayload {
@@ -127,6 +144,7 @@ export type TextItem = BaseEntryItem<TextPayload> & { itemType: "text" };
 export type TodoItem = BaseEntryItem<TodoPayload> & { itemType: "todo" };
 export type PlannerItem = BaseEntryItem<PlannerPayload> & { itemType: "planner" };
 export type BaseballItem = BaseEntryItem<BaseballPayload> & { itemType: "baseball" };
+export type TeachingItem = BaseEntryItem<TeachingPayload> & { itemType: "teaching" };
 export type PhotoItem = BaseEntryItem<PhotoPayload> & { itemType: "photo" };
 export type StickerItem = BaseEntryItem<StickerPayload> & { itemType: "sticker" };
 export type DrawingItem = BaseEntryItem<DrawingPayload> & { itemType: "drawing" };
@@ -145,6 +163,7 @@ export interface DiaryEntryRecord {
   todo: TodoItem;
   planner: PlannerItem;
   baseball: BaseballItem;
+  teaching: TeachingItem;
   photos: PhotoItem[];
   stickers: StickerItem[];
   drawing: DrawingItem;

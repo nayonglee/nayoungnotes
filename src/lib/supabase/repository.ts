@@ -163,6 +163,38 @@ function mapRowsToRecord(entryRow: EntryRow, itemRows: EntryItemRow[]) {
           updatedAt: row.updated_at
         };
         break;
+      case "teaching":
+        record.teaching = {
+          id: row.id,
+          itemType: "teaching",
+          orderIndex: row.order_index,
+          payload: {
+            dayType:
+              row.payload.dayType === "school" ||
+              row.payload.dayType === "teaching" ||
+              row.payload.dayType === "prep" ||
+              row.payload.dayType === "reset"
+                ? row.payload.dayType
+                : "school",
+            medSchoolFocus: String(row.payload.medSchoolFocus ?? ""),
+            academyWork: String(row.payload.academyWork ?? ""),
+            pokePrompt: String(row.payload.pokePrompt ?? ""),
+            subjects: Array.isArray(row.payload.subjects)
+              ? row.payload.subjects.map((subject, index) => {
+                  const source = subject && typeof subject === "object" ? (subject as Record<string, unknown>) : {};
+                  return {
+                    id: typeof source.id === "string" ? source.id : `subject_${index + 1}`,
+                    label: typeof source.label === "string" ? source.label : `Subject ${index + 1}`,
+                    checked: Boolean(source.checked),
+                    note: typeof source.note === "string" ? source.note : ""
+                  };
+                })
+              : []
+          },
+          styleConfig: normalizeStyle(row),
+          updatedAt: row.updated_at
+        };
+        break;
       case "photo":
         record.photos.push({
           id: row.id,
