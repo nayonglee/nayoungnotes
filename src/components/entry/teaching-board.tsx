@@ -1,9 +1,15 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useTransition } from "react";
 import TextareaAutosize from "react-textarea-autosize";
 import { buildPlanningPrompt, applyPlanningDraft } from "@/lib/planning-ai";
-import { createPlannerTemplate, createTeachingPayload, createTodoTemplate } from "@/lib/entry";
+import {
+  createPlannerBlock,
+  createPlannerTemplate,
+  createTeachingPayload,
+  createTodoCard,
+  createTodoTemplate
+} from "@/lib/entry";
 import type { DayType, PlannerBlock, TeachingPayload, TodoCard } from "@/types/diary";
 import styles from "@/styles/entry.module.css";
 
@@ -36,6 +42,7 @@ export function TeachingBoard({
   }) => void;
 }) {
   const [helperText, setHelperText] = useState("");
+  const [isPending, startTransition] = useTransition();
   const update = (patch: Partial<TeachingPayload>) => onChange({ ...payload, ...patch });
   const promptText = useMemo(() => buildPlanningPrompt(entryDate, payload), [entryDate, payload]);
 
@@ -57,6 +64,79 @@ export function TeachingBoard({
     const parsed = applyPlanningDraft(payload, payload.aiDraft);
     onApplyPlan(parsed);
     setHelperText("AI plan applied to this page.");
+  };
+
+  const handleAutofill = () => {
+    startTransition(() => {
+      void (async () => {
+      setHelperText("Asking AI to build today's plan...");
+
+      try {
+        const response = await fetch("/api/planning/autofill", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            entryDate,
+            teaching: payload
+          })
+        });
+
+        const data = (await response.json()) as
+          | {
+              error?: string;
+              detail?: string;
+            }
+          | {
+              dayType: DayType;
+              medSchoolFocus: string;
+              academyWork: string;
+              pokePrompt: string;
+              aiDraftSummary: string;
+              subjects: TeachingPayload["subjects"];
+              planner: { time: string; title: string; note: string }[];
+              todo: { text: string; checked: boolean }[];
+            };
+
+        if (!response.ok || !("planner" in data)) {
+          const message =
+            "error" in data && data.error
+              ? `${data.error}${data.detail ? ` ${data.detail}` : ""}`
+              : "AI autofill failed.";
+          setHelperText(message);
+          return;
+        }
+
+        onApplyPlan({
+          teaching: {
+            ...payload,
+            dayType: data.dayType,
+            medSchoolFocus: data.medSchoolFocus,
+            academyWork: data.academyWork,
+            pokePrompt: data.pokePrompt,
+            aiDraft: data.aiDraftSummary,
+            subjects: data.subjects
+          },
+          planner: data.planner.map((block) => ({
+            ...createPlannerBlock(block.time),
+            time: block.time,
+            title: block.title,
+            note: block.note
+          })),
+          todo: data.todo.map((item) => ({
+            ...createTodoCard(item.text),
+            text: item.text,
+            checked: item.checked
+          }))
+        });
+
+        setHelperText("AI filled this page from your weekly changes.");
+      } catch (error) {
+        setHelperText(error instanceof Error ? error.message : "AI autofill failed.");
+      }
+      })();
+    });
   };
 
   return (
@@ -193,6 +273,9 @@ export function TeachingBoard({
         </label>
 
         <div className={styles.teachingActionRow}>
+          <button type="button" className={styles.primaryButton} onClick={handleAutofill} disabled={isPending}>
+            {isPending ? "Filling..." : "Autofill with AI"}
+          </button>
           <button type="button" className={styles.secondaryButton} onClick={handleCopyPrompt}>
             Copy prompt
           </button>

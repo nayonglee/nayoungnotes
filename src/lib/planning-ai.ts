@@ -114,7 +114,11 @@ function subjectSummary(subjects: TeachingSubject[]) {
   return subjects.map((subject) => `- ${subject.label}`).join("\n");
 }
 
-export function buildPlanningPrompt(entryDate: string, payload: TeachingPayload) {
+export function buildPlanningPrompt(
+  entryDate: string,
+  payload: TeachingPayload,
+  format: "text" | "json" = "text"
+) {
   const selectedSubjects = payload.subjects
     .filter((subject) => subject.checked || subject.note.trim())
     .map((subject) => `- ${subject.label}${subject.note.trim() ? ` | ${subject.note.trim()}` : ""}`)
@@ -124,7 +128,7 @@ export function buildPlanningPrompt(entryDate: string, payload: TeachingPayload)
     ? `Extra instruction from Nayoung:\n${payload.pokePrompt.trim()}\n\n`
     : "";
 
-  return `Help plan one diary page for ${formatEntryDate(entryDate)}.
+  const base = `Help plan one diary page for ${formatEntryDate(entryDate)}.
 
 Profile:
 - Nayoung is a med student.
@@ -143,7 +147,14 @@ ${payload.weekContext.trim() || "- No extra weekly changes written yet."}
 Subjects already marked:
 ${selectedSubjects || subjectSummary(payload.subjects)}
 
-${customInstruction}Return plain text in exactly this format:
+${customInstruction}`;
+
+  if (format === "json") {
+    return `${base}
+Return a flexible day plan that follows the provided JSON schema exactly. Keep it realistic, light enough to be usable, and shaped by the weekly changes above.`;
+  }
+
+  return `${base}Return plain text in exactly this format:
 Day Type: school | teaching | prep | reset
 Med Focus: one concise sentence
 Academy Work: one concise sentence

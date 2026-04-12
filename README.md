@@ -10,6 +10,7 @@ Nayoung Notes is a private single-user diary and scrapbook planner PWA for one p
 - Local-only PIN lock for device privacy
 - IndexedDB offline drafts and sync queue
 - PWA installability with offline fallback
+- Optional direct AI autofill for week-based schedule changes
 
 ## Tech Stack
 
@@ -23,6 +24,7 @@ Nayoung Notes is a private single-user diary and scrapbook planner PWA for one p
 - `react-textarea-autosize`
 - `perfect-freehand`
 - `@ducanh2912/next-pwa`
+- OpenAI Responses API for direct schedule autofill
 
 ## Folder Structure
 
@@ -77,6 +79,18 @@ Typed payload examples:
 - Last write wins using server-issued `updated_at`
 - Offline queue retry on reconnect
 
+## AI Autofill
+
+- The Week Plan panel can call a server-side AI route directly
+- Add `OPENAI_API_KEY` to `.env.local` to enable the `Autofill with AI` button
+- The app sends only the current page date, weekly changes, subject checklist, and day planning context to the AI route
+- The returned plan is applied to:
+  - timed plans
+  - checklist
+  - med school focus
+  - academy focus
+  - selected subjects
+
 ## Offline Policy
 
 - Draft text, todos, photos, stickers, and drawing strokes are staged in IndexedDB
@@ -119,6 +133,7 @@ Typed payload examples:
 
 1. Copy `.env.example` to `.env.local`
 2. Add Supabase URL, anon key, and bucket name
-3. Apply `supabase/schema.sql`
-4. Run `npm install`
-5. Run `npm run dev`
+3. Add `OPENAI_API_KEY` if you want direct AI autofill inside the diary
+4. Apply `supabase/schema.sql`
+5. Run `npm install`
+6. Run `npm run dev`
