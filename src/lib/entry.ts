@@ -102,6 +102,20 @@ export function createBlankEntry(entryDate: string, viewer?: Viewer | null): Dia
       styleConfig: baseStyle(),
       updatedAt: now
     },
+    baseball: {
+      id: createId("baseball"),
+      itemType: "baseball",
+      orderIndex: 3,
+      payload: {
+        matchup: "",
+        ballpark: "",
+        player: "",
+        note: "",
+        moment: ""
+      },
+      styleConfig: baseStyle(),
+      updatedAt: now
+    },
     photos: [],
     stickers: [],
     drawing: {
@@ -162,6 +176,17 @@ export function normalizeEntryRecord(
         blocks: plannerBlocks.length > 0 ? plannerBlocks : record.planner?.payload?.blocks === undefined ? base.planner.payload.blocks : []
       }
     },
+    baseball: {
+      ...base.baseball,
+      ...record.baseball,
+      payload: {
+        matchup: record.baseball?.payload?.matchup ?? "",
+        ballpark: record.baseball?.payload?.ballpark ?? "",
+        player: record.baseball?.payload?.player ?? "",
+        note: record.baseball?.payload?.note ?? "",
+        moment: record.baseball?.payload?.moment ?? ""
+      }
+    },
     photos: record.photos ?? [],
     stickers: record.stickers ?? [],
     drawing: {
@@ -180,6 +205,11 @@ export function buildSearchText(record: DiaryEntryRecord) {
     normalized.text.payload.content,
     ...normalized.todo.payload.items.map((item) => item.text),
     ...normalized.planner.payload.blocks.flatMap((item) => [item.time, item.title, item.note]),
+    normalized.baseball.payload.matchup,
+    normalized.baseball.payload.ballpark,
+    normalized.baseball.payload.player,
+    normalized.baseball.payload.note,
+    normalized.baseball.payload.moment,
     ...normalized.photos.map((item) => item.payload.caption),
     ...normalized.stickers.map((item) => item.payload.label)
   ]
@@ -252,6 +282,13 @@ export function recordToPersistenceItems(record: DiaryEntryRecord): PersistedEnt
       order_index: 2,
       payload: record.planner.payload as unknown as Record<string, unknown>,
       style_config: record.planner.styleConfig as unknown as Record<string, unknown>
+    },
+    {
+      id: record.baseball.id,
+      item_type: "baseball",
+      order_index: 3,
+      payload: record.baseball.payload as unknown as Record<string, unknown>,
+      style_config: record.baseball.styleConfig as unknown as Record<string, unknown>
     },
     ...photos,
     ...stickers,

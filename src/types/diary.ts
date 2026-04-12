@@ -18,7 +18,14 @@ export type ThemePreset = "petal" | "mint" | "berry" | "butter" | "lilac" | "sky
 export type TexturePreset = "paper" | "dot" | "ruled";
 export type BoardTone = "cream" | "mint" | "blush";
 export type PresetRotation = -5 | 0 | 5;
-export type EntryItemType = "text" | "todo" | "planner" | "photo" | "drawing" | "sticker";
+export type EntryItemType =
+  | "text"
+  | "todo"
+  | "planner"
+  | "photo"
+  | "drawing"
+  | "sticker"
+  | "baseball";
 export type SaveState = "saved" | "syncing" | "offline-draft" | "error" | "idle";
 
 export interface ThemeConfig {
@@ -57,6 +64,14 @@ export interface PlannerBlock {
 
 export interface PlannerPayload {
   blocks: PlannerBlock[];
+}
+
+export interface BaseballPayload {
+  matchup: string;
+  ballpark: string;
+  player: string;
+  note: string;
+  moment: string;
 }
 
 export interface PhotoPayload {
@@ -111,6 +126,7 @@ export interface BaseEntryItem<TPayload> {
 export type TextItem = BaseEntryItem<TextPayload> & { itemType: "text" };
 export type TodoItem = BaseEntryItem<TodoPayload> & { itemType: "todo" };
 export type PlannerItem = BaseEntryItem<PlannerPayload> & { itemType: "planner" };
+export type BaseballItem = BaseEntryItem<BaseballPayload> & { itemType: "baseball" };
 export type PhotoItem = BaseEntryItem<PhotoPayload> & { itemType: "photo" };
 export type StickerItem = BaseEntryItem<StickerPayload> & { itemType: "sticker" };
 export type DrawingItem = BaseEntryItem<DrawingPayload> & { itemType: "drawing" };
@@ -128,6 +144,7 @@ export interface DiaryEntryRecord {
   text: TextItem;
   todo: TodoItem;
   planner: PlannerItem;
+  baseball: BaseballItem;
   photos: PhotoItem[];
   stickers: StickerItem[];
   drawing: DrawingItem;

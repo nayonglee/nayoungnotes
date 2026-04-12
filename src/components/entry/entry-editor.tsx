@@ -19,6 +19,7 @@ import { themePresets } from "@/lib/theme";
 import { useAuthStore } from "@/store/auth-store";
 import { useSyncStore } from "@/store/sync-store";
 import type { DiaryEntryRecord } from "@/types/diary";
+import { BaseballNote } from "@/components/entry/baseball-note";
 import { HandwritingPad } from "@/components/entry/handwriting-pad";
 import { PhotoBoard } from "@/components/entry/photo-board";
 import { SaveStateChip } from "@/components/entry/save-state-chip";
@@ -134,58 +135,102 @@ export function EntryEditor({ entryDate }: { entryDate: string }) {
     <div className={styles.editorPage} data-theme-preset={record.themeConfig.preset}>
       <div className={styles.dailyBinder}>
         <div className={styles.dailyPaper}>
-          <section className={styles.metaCard}>
-            <div className={styles.metaIntro}>
-              <button type="button" className={styles.backButton} onClick={() => router.push("/archive")}>
-                <ArrowLeft size={15} />
-                Archive
-              </button>
-              <div className={styles.metaTitleRow}>
-                <div className={styles.metaDateBlock}>
-                  <span className={styles.fieldLabel}>Date</span>
-                  <h3>{formatEntryDate(entryDate)}</h3>
+          <div className={styles.spreadLayout}>
+            <div className={styles.spreadPage}>
+              <section className={styles.metaCard}>
+                <div className={styles.metaIntro}>
+                  <button type="button" className={styles.backButton} onClick={() => router.push("/archive")}>
+                    <ArrowLeft size={15} />
+                    Archive
+                  </button>
+                  <div className={styles.metaTitleRow}>
+                    <div className={styles.metaDateBlock}>
+                      <span className={styles.fieldLabel}>Date</span>
+                      <h3>{formatEntryDate(entryDate)}</h3>
+                    </div>
+                    <label className={styles.metaTitleField}>
+                      <span className={styles.fieldLabel}>Title</span>
+                      <input
+                        className={styles.metaTitleInput}
+                        value={record.title}
+                        onChange={(event) =>
+                          updateRecord((current) => ({ ...current, title: event.target.value }))
+                        }
+                        placeholder="Name this page"
+                      />
+                    </label>
+                  </div>
                 </div>
-                <label className={styles.metaTitleField}>
-                  <span className={styles.fieldLabel}>Title</span>
-                  <input
-                    className={styles.metaTitleInput}
-                    value={record.title}
-                    onChange={(event) =>
-                      updateRecord((current) => ({ ...current, title: event.target.value }))
+                <div className={styles.metaActions}>
+                  <SaveStateChip state={status?.state ?? "saved"} />
+                  <button type="button" className={styles.ghostButton} onClick={handleDelete}>
+                    <Trash2 size={15} />
+                    Delete page
+                  </button>
+                </div>
+              </section>
+
+              <article className={styles.entryCard}>
+                <div className={styles.sectionHeader}>
+                  <h4>Diary note</h4>
+                </div>
+                <TextareaAutosize
+                  className={styles.diaryInput}
+                  minRows={10}
+                  value={record.text.payload.content}
+                  onChange={(event) =>
+                    updateRecord((current) => ({
+                      ...current,
+                      text: {
+                        ...current.text,
+                        payload: { content: event.target.value }
+                      }
+                    }))
+                  }
+                  placeholder="Write the story of the day, what happened, or what you want to remember."
+                />
+              </article>
+
+              <section className={styles.gridSingle}>
+                <article className={styles.entryCard}>
+                  <div className={styles.sectionHeader}>
+                    <h4>Checklist</h4>
+                  </div>
+                  <TodoEditor
+                    items={record.todo.payload.items}
+                    onChange={(items) =>
+                      updateRecord((current) => ({
+                        ...current,
+                        todo: { ...current.todo, payload: { items } }
+                      }))
                     }
-                    placeholder="Name this page"
                   />
-                </label>
-              </div>
-            </div>
-            <div className={styles.metaActions}>
-              <SaveStateChip state={status?.state ?? "saved"} />
-              <button type="button" className={styles.ghostButton} onClick={handleDelete}>
-                <Trash2 size={15} />
-                Delete page
-              </button>
-            </div>
-          </section>
+                </article>
 
-          <section className={styles.grid}>
-            <article className={styles.entryCard}>
-              <div className={styles.sectionHeader}>
-                <h4>Quick checklist</h4>
-              </div>
-              <TodoEditor
-                items={record.todo.payload.items}
-                onChange={(items) =>
-                  updateRecord((current) => ({
-                    ...current,
-                    todo: { ...current.todo, payload: { items } }
-                  }))
-                }
-              />
-            </article>
+                <article className={styles.entryCard}>
+                  <div className={styles.sectionHeader}>
+                    <h4>Baseball pocket</h4>
+                  </div>
+                  <BaseballNote
+                    payload={record.baseball.payload}
+                    onChange={(payload) =>
+                      updateRecord((current) => ({
+                        ...current,
+                        baseball: {
+                          ...current.baseball,
+                          payload
+                        }
+                      }))
+                    }
+                  />
+                </article>
+              </section>
+            </div>
 
-            <article className={styles.entryCard}>
+            <div className={styles.spreadPage}>
+              <article className={styles.entryCard}>
               <div className={styles.sectionHeader}>
-                <h4>Timed plans</h4>
+                <h4>Time notes</h4>
               </div>
               <TimePlanner
                 blocks={record.planner.payload.blocks}
@@ -199,66 +244,46 @@ export function EntryEditor({ entryDate }: { entryDate: string }) {
                   }))
                 }
               />
-            </article>
-          </section>
+              </article>
 
-          <section className={styles.entryCard}>
-            <div className={styles.sectionHeader}>
-              <h4>Diary</h4>
-            </div>
-            <TextareaAutosize
-              className={styles.diaryInput}
-              minRows={8}
-              value={record.text.payload.content}
-              onChange={(event) =>
-                updateRecord((current) => ({
-                  ...current,
-                  text: {
-                    ...current.text,
-                    payload: { content: event.target.value }
-                  }
-                }))
-              }
-              placeholder="Write the story of the day, what happened, or what you want to remember."
-            />
-          </section>
+              <section className={styles.entryCard}>
+                <div className={styles.sectionHeader}>
+                  <h4>Scrapbook page</h4>
+                </div>
+                <PhotoBoard
+                  themePreset={record.themeConfig.preset}
+                  themeOptions={themePresets}
+                  photos={record.photos}
+                  stickers={record.stickers}
+                  onThemeChange={(themeId) => {
+                    const theme = themePresets.find((item) => item.id === themeId);
+                    if (!theme) return;
+                    updateRecord((current) => ({
+                      ...current,
+                      themeConfig: {
+                        preset: theme.id,
+                        texture: theme.texture,
+                        boardTone: theme.boardTone
+                      }
+                    }));
+                  }}
+                  onPhotosChange={(photos) => updateRecord((current) => ({ ...current, photos }))}
+                  onStickersChange={(stickers) => updateRecord((current) => ({ ...current, stickers }))}
+                />
+              </section>
 
-          <section className={styles.entryCard}>
-            <div className={styles.sectionHeader}>
-              <h4>Scrapbook</h4>
+              <section className={styles.entryCard}>
+                <div className={styles.sectionHeader}>
+                  <h4>Handwriting</h4>
+                </div>
+                <HandwritingPad
+                  key={record.drawing.id}
+                  drawing={record.drawing}
+                  onChange={(drawing) => updateRecord((current) => ({ ...current, drawing }))}
+                />
+              </section>
             </div>
-            <PhotoBoard
-              themePreset={record.themeConfig.preset}
-              themeOptions={themePresets}
-              photos={record.photos}
-              stickers={record.stickers}
-              onThemeChange={(themeId) => {
-                const theme = themePresets.find((item) => item.id === themeId);
-                if (!theme) return;
-                updateRecord((current) => ({
-                  ...current,
-                  themeConfig: {
-                    preset: theme.id,
-                    texture: theme.texture,
-                    boardTone: theme.boardTone
-                  }
-                }));
-              }}
-              onPhotosChange={(photos) => updateRecord((current) => ({ ...current, photos }))}
-              onStickersChange={(stickers) => updateRecord((current) => ({ ...current, stickers }))}
-            />
-          </section>
-
-          <section className={styles.entryCard}>
-            <div className={styles.sectionHeader}>
-              <h4>Handwriting</h4>
-            </div>
-            <HandwritingPad
-              key={record.drawing.id}
-              drawing={record.drawing}
-              onChange={(drawing) => updateRecord((current) => ({ ...current, drawing }))}
-            />
-          </section>
+          </div>
         </div>
 
         <div className={styles.dailyRings} aria-hidden="true">

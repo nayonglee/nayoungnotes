@@ -70,6 +70,34 @@
     inset 0 0 0 1px rgba(215, 201, 196, 0.42);
 }
 
+.spreadLayout {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.spreadLayout::before {
+  content: "";
+  position: absolute;
+  top: 0.8rem;
+  bottom: 0.8rem;
+  left: calc(50% - 1px);
+  width: 2px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, rgba(229, 194, 206, 0.12), rgba(211, 182, 193, 0.4), rgba(229, 194, 206, 0.12));
+  pointer-events: none;
+}
+
+.spreadPage {
+  position: relative;
+  display: grid;
+  align-content: start;
+  gap: 0.95rem;
+  min-width: 0;
+  padding: 0.4rem 0.35rem 0.6rem;
+}
+
 .dailyPaper::before {
   content: "";
   position: absolute;
@@ -137,11 +165,11 @@
 
 .metaCard,
 .entryCard {
-  background: rgba(255, 255, 255, 0.66);
+  background: rgba(255, 255, 255, 0.54);
   border-radius: 24px;
   box-shadow:
-    inset 0 0 0 1px rgba(222, 210, 207, 0.72),
-    0 8px 16px rgba(208, 177, 190, 0.06);
+    0 10px 18px rgba(208, 177, 190, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.48);
   position: relative;
   overflow: hidden;
 }
@@ -381,6 +409,11 @@
   align-items: start;
 }
 
+.sectionHeader h4 {
+  font-size: 1.08rem;
+  letter-spacing: 0.01em;
+}
+
 .sectionHint {
   margin-top: 0.2rem;
   font-size: 0.88rem;
@@ -430,6 +463,12 @@
 .grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.gridSingle {
+  display: grid;
+  grid-template-columns: 1fr;
   gap: 1rem;
 }
 
@@ -484,6 +523,72 @@
 .plannerList {
   display: grid;
   gap: 0.8rem;
+}
+
+.baseballCard {
+  display: grid;
+  gap: 0.9rem;
+  padding: 0.15rem 0.1rem 0;
+}
+
+.baseballMiniGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.baseballField {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.baseballLabel {
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(111, 99, 104, 0.72);
+}
+
+.baseballInput,
+.baseballTextarea {
+  width: 100%;
+  border: none;
+  outline: none;
+  appearance: none;
+  -webkit-appearance: none;
+  background: rgba(255, 251, 252, 0.58);
+  color: var(--ink);
+  font: inherit;
+  border-radius: 18px;
+  box-shadow: none;
+  transition:
+    background 140ms ease,
+    box-shadow 140ms ease;
+}
+
+.baseballInput {
+  min-height: 42px;
+  padding: 0.72rem 0.85rem;
+}
+
+.baseballTextarea {
+  resize: none;
+  padding: 0.8rem 0.9rem;
+  line-height: 1.65;
+}
+
+.baseballInput:focus,
+.baseballTextarea:focus {
+  background: rgba(255, 248, 251, 0.88);
+  box-shadow:
+    0 14px 24px rgba(248, 217, 232, 0.12),
+    0 0 0 8px rgba(255, 248, 251, 0.66);
+}
+
+.baseballInput::placeholder,
+.baseballTextarea::placeholder {
+  color: rgba(111, 99, 104, 0.56);
 }
 
 .plannerCard {
@@ -1099,6 +1204,18 @@
   .grid,
   .themeRow,
   .coverLayout {
+    grid-template-columns: 1fr;
+  }
+
+  .spreadLayout {
+    grid-template-columns: 1fr;
+  }
+
+  .spreadLayout::before {
+    display: none;
+  }
+
+  .baseballMiniGrid {
     grid-template-columns: 1fr;
   }
 

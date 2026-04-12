@@ -147,6 +147,22 @@ function mapRowsToRecord(entryRow: EntryRow, itemRows: EntryItemRow[]) {
           updatedAt: row.updated_at
         };
         break;
+      case "baseball":
+        record.baseball = {
+          id: row.id,
+          itemType: "baseball",
+          orderIndex: row.order_index,
+          payload: {
+            matchup: String(row.payload.matchup ?? ""),
+            ballpark: String(row.payload.ballpark ?? ""),
+            player: String(row.payload.player ?? ""),
+            note: String(row.payload.note ?? ""),
+            moment: String(row.payload.moment ?? "")
+          },
+          styleConfig: normalizeStyle(row),
+          updatedAt: row.updated_at
+        };
+        break;
       case "photo":
         record.photos.push({
           id: row.id,
@@ -168,7 +184,7 @@ function mapRowsToRecord(entryRow: EntryRow, itemRows: EntryItemRow[]) {
           itemType: "sticker",
           orderIndex: row.order_index,
           payload: {
-            stickerId: String(row.payload.stickerId ?? "starry"),
+            stickerId: String(row.payload.stickerId ?? "star-sugar"),
             label: String(row.payload.label ?? ""),
             tint: String(row.payload.tint ?? "#f6ddea")
           },
