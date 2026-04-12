@@ -36,7 +36,9 @@ export function BaseballNote({
       return (await response.json()) as SamsungLionsResponse;
     }
   });
+
   const autoGame = scheduleQuery.data?.game ?? null;
+
   const applyAutoGame = () => {
     if (!autoGame) return;
     update({
@@ -44,7 +46,7 @@ export function BaseballNote({
       ballpark: payload.ballpark || autoGame.venue,
       note:
         payload.note ||
-        `${autoGame.date} ${autoGame.time} Samsung Lions vs ${autoGame.opponent} · ${autoGame.status}`,
+        `${autoGame.date} ${autoGame.time} · Samsung Lions vs ${autoGame.opponent} · ${autoGame.status}`,
       moment: payload.moment
     });
   };
@@ -89,7 +91,7 @@ export function BaseballNote({
             className={styles.baseballInput}
             value={payload.ballpark}
             onChange={(event) => update({ ballpark: event.target.value })}
-            placeholder="Jamsil, Incheon..."
+            placeholder="Daegu, Jamsil..."
           />
         </label>
 
@@ -111,7 +113,7 @@ export function BaseballNote({
           minRows={3}
           value={payload.note}
           onChange={(event) => update({ note: event.target.value })}
-          placeholder="What you tracked, the flow of the game, the crowd, the uniform, anything."
+          placeholder="What you tracked, the flow, the crowd, the uniform, anything."
         />
       </label>
 

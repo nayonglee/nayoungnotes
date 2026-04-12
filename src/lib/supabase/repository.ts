@@ -179,6 +179,8 @@ function mapRowsToRecord(entryRow: EntryRow, itemRows: EntryItemRow[]) {
             medSchoolFocus: String(row.payload.medSchoolFocus ?? ""),
             academyWork: String(row.payload.academyWork ?? ""),
             pokePrompt: String(row.payload.pokePrompt ?? ""),
+            weekContext: String(row.payload.weekContext ?? ""),
+            aiDraft: String(row.payload.aiDraft ?? ""),
             subjects: Array.isArray(row.payload.subjects)
               ? row.payload.subjects.map((subject, index) => {
                   const source = subject && typeof subject === "object" ? (subject as Record<string, unknown>) : {};

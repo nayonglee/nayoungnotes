@@ -194,7 +194,7 @@ export function EntryEditor({ entryDate }: { entryDate: string }) {
 
               <article className={styles.entryCard}>
                 <div className={styles.sectionHeader}>
-                  <h4>Teaching board</h4>
+                  <h4>Week plan</h4>
                 </div>
                 <TeachingBoard
                   entryDate={entryDate}
@@ -214,6 +214,20 @@ export function EntryEditor({ entryDate }: { entryDate: string }) {
                       teaching: { ...current.teaching, payload: teaching },
                       planner: { ...current.planner, payload: { blocks: planner } },
                       todo: { ...current.todo, payload: { items: todo } }
+                    }))
+                  }
+                  onApplyPlan={({ teaching, planner, todo }) =>
+                    updateRecord((current) => ({
+                      ...current,
+                      teaching: { ...current.teaching, payload: teaching },
+                      planner: {
+                        ...current.planner,
+                        payload: { blocks: planner ?? current.planner.payload.blocks }
+                      },
+                      todo: {
+                        ...current.todo,
+                        payload: { items: todo ?? current.todo.payload.items }
+                      }
                     }))
                   }
                 />

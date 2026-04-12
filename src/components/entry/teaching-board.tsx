@@ -1,6 +1,8 @@
 "use client";
 
+import { useMemo, useState } from "react";
 import TextareaAutosize from "react-textarea-autosize";
+import { buildPlanningPrompt, applyPlanningDraft } from "@/lib/planning-ai";
 import { createPlannerTemplate, createTeachingPayload, createTodoTemplate } from "@/lib/entry";
 import type { DayType, PlannerBlock, TeachingPayload, TodoCard } from "@/types/diary";
 import styles from "@/styles/entry.module.css";
@@ -16,7 +18,8 @@ export function TeachingBoard({
   entryDate,
   payload,
   onChange,
-  onApplyTemplate
+  onApplyTemplate,
+  onApplyPlan
 }: {
   entryDate: string;
   payload: TeachingPayload;
@@ -26,8 +29,35 @@ export function TeachingBoard({
     planner: PlannerBlock[];
     todo: TodoCard[];
   }) => void;
+  onApplyPlan: (template: {
+    teaching: TeachingPayload;
+    planner?: PlannerBlock[];
+    todo?: TodoCard[];
+  }) => void;
 }) {
+  const [helperText, setHelperText] = useState("");
   const update = (patch: Partial<TeachingPayload>) => onChange({ ...payload, ...patch });
+  const promptText = useMemo(() => buildPlanningPrompt(entryDate, payload), [entryDate, payload]);
+
+  const handleCopyPrompt = async () => {
+    try {
+      await navigator.clipboard.writeText(promptText);
+      setHelperText("Prompt copied. Paste it into Poke, then paste the reply back here.");
+    } catch {
+      setHelperText("Clipboard was blocked. You can still copy the prompt from the text area.");
+    }
+  };
+
+  const handleApplyDraft = () => {
+    if (!payload.aiDraft.trim()) {
+      setHelperText("Paste an AI plan first, then apply it.");
+      return;
+    }
+
+    const parsed = applyPlanningDraft(payload, payload.aiDraft);
+    onApplyPlan(parsed);
+    setHelperText("AI plan applied to this page.");
+  };
 
   return (
     <div className={styles.teachingBoard}>
@@ -50,15 +80,26 @@ export function TeachingBoard({
           className={styles.secondaryButton}
           onClick={() =>
             onApplyTemplate({
-              teaching: createTeachingPayload(entryDate),
-              planner: createPlannerTemplate(entryDate),
-              todo: createTodoTemplate(entryDate)
+              teaching: createTeachingPayload(entryDate, "baseline"),
+              planner: createPlannerTemplate(entryDate, "baseline"),
+              todo: createTodoTemplate(entryDate, "baseline")
             })
           }
         >
-          Apply my template
+          Reset baseline
         </button>
       </div>
+
+      <label className={styles.baseballField}>
+        <span className={styles.baseballLabel}>Week changes</span>
+        <TextareaAutosize
+          className={styles.baseballTextarea}
+          minRows={3}
+          value={payload.weekContext}
+          onChange={(event) => update({ weekContext: event.target.value })}
+          placeholder="This week OSCE is close, Sunday class moved later, academy mock on Friday, AP student wants extra FRQ..."
+        />
+      </label>
 
       <div className={styles.teachingMiniGrid}>
         {payload.subjects.map((subject) => (
@@ -89,44 +130,79 @@ export function TeachingBoard({
                   )
                 })
               }
-              placeholder="Plan or note"
+              placeholder="What matters this week"
             />
           </label>
         ))}
       </div>
 
-      <label className={styles.baseballField}>
-        <span className={styles.baseballLabel}>Med school focus</span>
-        <TextareaAutosize
-          className={styles.baseballTextarea}
-          minRows={2}
-          value={payload.medSchoolFocus}
-          onChange={(event) => update({ medSchoolFocus: event.target.value })}
-          placeholder="What has to be protected for med school today?"
-        />
-      </label>
+      <div className={styles.teachingSplitGrid}>
+        <label className={styles.baseballField}>
+          <span className={styles.baseballLabel}>Med focus</span>
+          <TextareaAutosize
+            className={styles.baseballTextarea}
+            minRows={2}
+            value={payload.medSchoolFocus}
+            onChange={(event) => update({ medSchoolFocus: event.target.value })}
+            placeholder="What absolutely has to stay protected for med school"
+          />
+        </label>
 
-      <label className={styles.baseballField}>
-        <span className={styles.baseballLabel}>Academy work</span>
-        <TextareaAutosize
-          className={styles.baseballTextarea}
-          minRows={2}
-          value={payload.academyWork}
-          onChange={(event) => update({ academyWork: event.target.value })}
-          placeholder="Lesson prep, feedback, printing, messaging..."
-        />
-      </label>
+        <label className={styles.baseballField}>
+          <span className={styles.baseballLabel}>Academy focus</span>
+          <TextareaAutosize
+            className={styles.baseballTextarea}
+            minRows={2}
+            value={payload.academyWork}
+            onChange={(event) => update({ academyWork: event.target.value })}
+            placeholder="Only the prep, feedback, or admin that really matters this week"
+          />
+        </label>
+      </div>
 
-      <label className={styles.baseballField}>
-        <span className={styles.baseballLabel}>Poke prompt</span>
-        <TextareaAutosize
-          className={styles.baseballTextarea}
-          minRows={3}
-          value={payload.pokePrompt}
-          onChange={(event) => update({ pokePrompt: event.target.value })}
-          placeholder="Prompt draft for Poke or any AI assistant"
-        />
-      </label>
+      <div className={styles.aiPlannerCard}>
+        <div className={styles.sectionHeader}>
+          <h4>AI planning</h4>
+        </div>
+
+        <label className={styles.baseballField}>
+          <span className={styles.baseballLabel}>AI note</span>
+          <TextareaAutosize
+            className={styles.baseballTextarea}
+            minRows={2}
+            value={payload.pokePrompt}
+            onChange={(event) => update({ pokePrompt: event.target.value })}
+            placeholder="Anything extra the AI should respect for this day"
+          />
+        </label>
+
+        <label className={styles.baseballField}>
+          <span className={styles.baseballLabel}>Prompt</span>
+          <TextareaAutosize className={styles.aiPromptPreview} minRows={7} value={promptText} readOnly />
+        </label>
+
+        <label className={styles.baseballField}>
+          <span className={styles.baseballLabel}>Paste AI reply</span>
+          <TextareaAutosize
+            className={styles.baseballTextarea}
+            minRows={7}
+            value={payload.aiDraft}
+            onChange={(event) => update({ aiDraft: event.target.value })}
+            placeholder="Paste the AI plan here, then apply it to this page."
+          />
+        </label>
+
+        <div className={styles.teachingActionRow}>
+          <button type="button" className={styles.secondaryButton} onClick={handleCopyPrompt}>
+            Copy prompt
+          </button>
+          <button type="button" className={styles.primaryButton} onClick={handleApplyDraft}>
+            Apply AI plan
+          </button>
+        </div>
+
+        {helperText ? <p className={styles.sectionHint}>{helperText}</p> : null}
+      </div>
     </div>
   );
 }

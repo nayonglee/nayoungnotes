@@ -88,6 +88,8 @@ export interface TeachingPayload {
   medSchoolFocus: string;
   academyWork: string;
   pokePrompt: string;
+  weekContext: string;
+  aiDraft: string;
   subjects: TeachingSubject[];
 }
 
